@@ -99,4 +99,4 @@ const userScehma = new Schema(
   }
 );
 
-module.exports = mongoose.model("employee", userScehma);
+module.exports = mongoose.model("user", userScehma);
