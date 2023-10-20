@@ -3,9 +3,11 @@ const dotenv = require("dotenv");
 dotenv.config();
 const Connect = require("./config/ConnectionDB");
 const colors = require("colors");
-const employeeRoutes=require("./routes/EmployeeRoutes")
+const userRoutes=require("./routes/UserRoutes")
 const app = express();
-app.use("/api/v1/employee",employeeRoutes)
+app.use(express.json());
+app.use(express.urlencoded({extended:false}));
+app.use("/api/v1/user",userRoutes)
 
 Connect().then(() => {
   const PORT = process.env.PORT || 3000;

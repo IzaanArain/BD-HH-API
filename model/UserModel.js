@@ -1,16 +1,22 @@
 const mongoose=require("mongoose");
 const {Schema}=mongoose;
 
-const employeeScehma=new Schema({
-    name:{
-        type:String,
-        default:""
-    },
+const userScehma=new Schema({
     email:{
         type:String,
-        default:""
+        default:"",
+        unique: true
     },
     password:{
+        type:String,
+        default:""
+    },
+    role:{
+        type:String,
+        enum:["employee","employer"],
+        default:"employee"
+    },
+    name:{
         type:String,
         default:""
     },
@@ -70,4 +76,4 @@ const employeeScehma=new Schema({
     timestamps:true
 });
 
-module.exports=mongoose.model("employeee",employeeScehma);
+module.exports=mongoose.model("employee",userScehma);
