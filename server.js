@@ -1,16 +1,16 @@
-const express=require("express")
+const express = require("express");
+const dotenv = require("dotenv");
+dotenv.config();
+const Connect = require("./config/ConnectionDB");
+const colors = require("colors");
+const employeeRoutes=require("./routes/EmployeeRoutes")
+const app = express();
+app.use("/api/v1/employee",employeeRoutes)
 
-const app=express();
-
-app.get("/",(req,res)=>{
-    res.status(200).send({msg:"hello world"})
-})
-
-app.get("/:name",(req,res)=>{
-    res.status(200).send({msg:`hello world ${req.params.name}`})
-})
-
-const PORT=5001
-app.listen(PORT,()=>{
+Connect().then(() => {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`http://localhost:${PORT}`);
     console.log(`Server running on port ${PORT}`);
-})
+  });
+});
