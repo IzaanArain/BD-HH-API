@@ -1,79 +1,102 @@
-const mongoose=require("mongoose");
-const {Schema}=mongoose;
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
-const userScehma=new Schema({
-    email:{
-        type:String,
-        default:"",
-        unique: true
+const userScehma = new Schema(
+  {
+    email: {
+      type: String,
+      default: "",
+      unique: true,
     },
-    password:{
-        type:String,
-        default:""
+    password: {
+      type: String,
+      default: "",
     },
-    role:{
-        type:String,
-        enum:["employee","employer"],
-        default:"employee"
+    role: {
+      type: String,
+      enum: ["employee", "employer"],
+      default: "employee",
     },
-    name:{
-        type:String,
-        default:""
+    name: {
+      type: String,
+      default: "",
     },
-    image:{
-        type:String,
-        default:"",
+    company_name: {
+      type: String,
+      default: "",
     },
-    otp_code:{
-        type:Number,
-        default:null
+    phone_number: {
+      type: Number,
+      default: null,
     },
-    is_verified:{
-        type:Boolean,
-        default:false
+    business_number: {
+      type: Number,
+      default: null,
     },
-    user_auth:{
-        type:String,
-        default:""
+    industry_category: {
+      type: String,
+      default: "",
     },
-    is_complete:{
-        type:Boolean,
-        default:false
+    location: {
+      type: String,
+      default: "",
     },
-    is_notification:{
-        type:Boolean,
-        default:false
+    image: {
+      type: String,
+      default: "",
     },
-    is_forgot_password:{
-        type:Boolean,
-        default:false
+    otp_code: {
+      type: Number,
+      default: null,
     },
-    is_blocked:{
-        type:Boolean,
-        default:false
+    is_verified: {
+      type: Boolean,
+      default: false,
     },
-    is_delete:{
-        type:Boolean,
-        default:false
+    user_auth: {
+      type: String,
+      default: "",
     },
-    device_token:{
-        type:String,
-        default:"123456789"
+    is_complete: {
+      type: Boolean,
+      default: false,
     },
-    device_type:{
-        type:String,
-        default:"Android"
+    job_notification: {
+      type: Boolean,
+      default: false,
     },
-    social_token:{
-        type:String,
-        default:"987654321"
+    is_forgot_password: {
+      type: Boolean,
+      default: false,
     },
-    social_type:{
-        type:String,
-        default:"facebook"
+    is_blocked: {
+      type: Boolean,
+      default: false,
     },
-},{
-    timestamps:true
-});
+    is_delete: {
+      type: Boolean,
+      default: false,
+    },
+    device_token: {
+      type: String,
+      default: "123456789",
+    },
+    device_type: {
+      type: String,
+      default: "Android",
+    },
+    social_token: {
+      type: String,
+      default: "987654321",
+    },
+    social_type: {
+      type: String,
+      default: "facebook",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-module.exports=mongoose.model("employee",userScehma);
+module.exports = mongoose.model("employee", userScehma);
