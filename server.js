@@ -12,7 +12,7 @@ app.use("/api/v1/user",userRoutes)
 Connect().then(() => {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
-    console.log(`http://localhost:${PORT}`);
+    console.log(`http://localhost:${PORT}/api/v1/user`);
     console.log(`Server running on port ${PORT}`);
   });
 });
