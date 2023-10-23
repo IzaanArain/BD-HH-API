@@ -1,10 +1,41 @@
-const jwt=require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
+const User = require("../model/UserModel");
 
-const create_token=(id)=>{
-    return jwt.sign({id:id},process.env.TOKEN_KEY);
-}
+const create_token = (id) => {
+  return jwt.sign({ id: id }, process.env.TOKEN_KEY);
+};
 
+const user_validate_token = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+      return res.status(400).send({
+        status: 0,
+        message: "Unauthorized : Token is required",
+      });
+    }
+    const decoded = jwt.verify(token, process.env.TOKEN_KEY);
+    const user_id = decoded?.id;
+    const user = await User.findById(user_id);
+    if (!user) {
+      return res.status(400).send({
+        status: 0,
+        message: "Unauthorized : User not found",
+      });
+    }else{
+        req.user = user;
+        next();
+    }
+  } catch (err) {
+    console.error("Error", err.message);
+    return res.status(500).send({
+      status: 0,
+      message: "failed to validate token",
+    });
+  }
+};
 
-module.exports={
-    create_token
-}
+module.exports = {
+  create_token,
+  user_validate_token,
+};

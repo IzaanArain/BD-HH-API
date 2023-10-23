@@ -325,7 +325,7 @@ const reset_password = async (req, res) => {
     return res.status(200).send({
       status: 1,
       message: "reset password successful",
-    })
+    });
   } catch (err) {
     console.error("Error", err.message);
     return res.status(500).send({
@@ -337,7 +337,120 @@ const reset_password = async (req, res) => {
 
 const complete_profile = async (req, res) => {
   try {
-    const { name, phone, category, business_number, company_name } = req.body;
+    const user_id = req?.user?._id;
+    const user_role = req?.user?.role;
+    const { name, phone, category, business_number, company_name, location } =
+      req.body;
+    if (!name) {
+      return res.status(400).send({
+        status: 0,
+        message: "please enter your name",
+      });
+    } else if (!phone) {
+      return res.status(400).send({
+        status: 0,
+        message: "please enter your phone number",
+      });
+    } else if (
+      !phone.match(
+        /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/
+      )
+    ) {
+      return res.status(400).send({
+        status: 0,
+        message: "please enter a valid phone number",
+      });
+    } else if (!category) {
+      return res.status(400).send({
+        status: 0,
+        message: "please select a category",
+      });
+    } else if (!location) {
+      return res.status(400).send({
+        status: 0,
+        message: "please enter your location",
+      });
+    } else if (user_role === "employer") {
+      if (!business_number) {
+        return res.status(400).send({
+          status: 0,
+          message: "please enter your business number",
+        });
+      } else if (
+        !business_number.match(
+          /^\s*(?:\+?(\d{1,3}))?[-. (]*(\d{3})[-. )]*(\d{3})[-. ]*(\d{4})(?: *x(\d+))?\s*$/
+        )
+      ) {
+        return res.status(400).send({
+          status: 0,
+          message: "please enter a valid phone number",
+        });
+      } else if (!company_name) {
+        return res.status(400).send({
+          status: 0,
+          message: "please enter your company name",
+        });
+      } else {
+        const employer = await User.findByIdAndUpdate(
+          user_id,
+          {
+            name,
+            phone_number: phone,
+            industry_category: category,
+            business_number,
+            company_name,
+            location,
+            is_complete: true,
+          },
+          { new: true }
+        );
+        return res.status(200).send({
+          status: 0,
+          message: "employer profile completed successfully",
+          employer,
+        });
+      }
+    }
+    const job_request = req?.user?.job_request;
+    if (user_role === "employee") {
+      if (job_request) {
+        const employee = await User.findByIdAndUpdate(
+          user_id,
+          {
+            name,
+            phone,
+            category,
+            location,
+            job_request: !job_request,
+            is_complete: true,
+          },
+          { new: true }
+        );
+        return res.status(200).send({
+          status: 0,
+          message: "employee profile completed successfully",
+          employee,
+        });
+      } else {
+        const user = await User.findByIdAndUpdate(
+          user_id,
+          {
+            name,
+            phone,
+            location,
+            job_request: !job_request,
+            category,
+            is_complete: true,
+          },
+          { new: true }
+        );
+        return res.status(200).send({
+          status: 0,
+          message: "employee profile completed successfully",
+          user,
+        });
+      }
+    }
   } catch (err) {
     console.error("Error", err.message);
     return res.status(500).send({
@@ -349,6 +462,60 @@ const complete_profile = async (req, res) => {
 
 const change_password = async (req, res) => {
   try {
+    const user_id = req?.user?._id;
+    const { password, new_password } = req.body;
+    if (!password) {
+      return res.status(400).send({
+        status: 0,
+        message: "please enter password",
+      });
+    } else if (
+      !password.match(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+      )
+    ) {
+      return res.status(400).send({
+        status: 0,
+        message:
+          "Password should include at least 8 characters, one uppercase letter, one lowercase letter, one digit, and one special character.",
+      });
+    } else if (!new_password) {
+      return res.status(400).send({
+        status: 0,
+        message: "please enter password",
+      });
+    } else if (
+      !new_password.match(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+      )
+    ) {
+      return res.status(400).send({
+        status: 0,
+        message:
+          "Password should include at least 8 characters, one uppercase letter, one lowercase letter, one digit, and one special character.",
+      });
+    }
+    const saltRounds = 10;
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hashedPassword = await bcrypt.hash(new_password, salt);
+    const user_password = req?.user?.password;
+    const matchPassword = await bcrypt.compare(password, user_password);
+    if (matchPassword) {
+      await User.findByIdAndUpdate(
+        user_id,
+        { password: hashedPassword },
+        { new: true }
+      );
+      return res.status(200).send({
+        status: 1,
+        message: "password changed successfully",
+      });
+    } else {
+      return res.status(400).send({
+        status: 0,
+        message: "Incorrect password",
+      });
+    }
   } catch (err) {
     console.error("Error", err.message);
     return res.status(500).send({
@@ -360,6 +527,42 @@ const change_password = async (req, res) => {
 
 const delete_profile = async (req, res) => {
   try {
+    const user_id=req?.user?._id
+    const password=req.body.password;
+    if (!password) {
+      return res.status(400).send({
+        status: 0,
+        message: "please enter password",
+      });
+    } else if (
+      !password.match(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+      )
+    ) {
+      return res.status(400).send({
+        status: 0,
+        message:
+          "Password should include at least 8 characters, one uppercase letter, one lowercase letter, one digit, and one special character.",
+      });
+    }
+    const user_password = req?.user?.password;
+    const matchPassword = await bcrypt.compare(password, user_password);
+    if (matchPassword) {
+      await User.findByIdAndUpdate(
+        user_id,
+        { is_delete:true },
+        { new: true }
+      );
+      return res.status(200).send({
+        status: 1,
+        message: "user deleted successfully",
+      });
+    } else {
+      return res.status(400).send({
+        status: 0,
+        message: "Incorrect password",
+      });
+    }
   } catch (err) {
     console.error("Error", err.message);
     return res.status(500).send({
@@ -368,10 +571,14 @@ const delete_profile = async (req, res) => {
     });
   }
 };
+
 module.exports = {
   signup,
   otp_verfy,
   login,
   forgot_password,
-  reset_password
+  reset_password,
+  complete_profile,
+  change_password,
+  delete_profile,
 };

@@ -34,8 +34,8 @@ const userScehma = new Schema(
       default: null,
     },
     industry_category: {
-      type: String,
-      default: "",
+      type:String,
+      default:""
     },
     location: {
       type: String,
@@ -61,7 +61,11 @@ const userScehma = new Schema(
       type: Boolean,
       default: false,
     },
-    job_notification: {
+    job_request: {
+      type: Boolean,
+      default: false,
+    },
+    is_notification:{
       type: Boolean,
       default: false,
     },
