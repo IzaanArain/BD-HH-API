@@ -41,7 +41,11 @@ const userScehma = new Schema(
       type: String,
       default: "",
     },
-    image: {
+    user_image: {
+      type: String,
+      default: "",
+    },
+    company_image:{
       type: String,
       default: "",
     },
