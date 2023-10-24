@@ -25,6 +25,6 @@ router.post("/complete_profile", user_validate_token,upload.fields([{name:'profi
 router.post("/change_password", user_validate_token, change_password);
 router.post("/delete_profile", user_validate_token,delete_profile);
 // job routes
-router.post("/create_job_post", user_validate_token,checkUserRole("employer"),create_job_post);
+router.post("/create_job_post", user_validate_token,checkUserRole("employer"),upload.fields([{name:"post_image"}]),create_job_post);
 
 module.exports = router;
