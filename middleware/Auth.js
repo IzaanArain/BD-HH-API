@@ -14,7 +14,14 @@ const user_validate_token = async (req, res, next) => {
         message: "Unauthorized : Token is required",
       });
     }
-    const decoded = jwt.verify(token, process.env.TOKEN_KEY);
+    const token_user=await User.findOne({user_auth:token});
+    if(!token_user){
+      return res.status(400).send({
+        status: 0,
+        message: "not a valid token",
+      });
+    }
+    const decoded = jwt.verify(token,process.env.TOKEN_KEY);
     const user_id = decoded?.id;
     const user = await User.findById(user_id);
     if (!user) {
@@ -22,9 +29,9 @@ const user_validate_token = async (req, res, next) => {
         status: 0,
         message: "Unauthorized : User not found",
       });
-    }else{
-        req.user = user;
-        next();
+    } else {
+      req.user = user;
+      next();
     }
   } catch (err) {
     console.error("Error", err.message);

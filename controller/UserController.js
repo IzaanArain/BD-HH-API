@@ -339,8 +339,8 @@ const complete_profile = async (req, res) => {
   try {
     const user_id = req?.user?._id;
     const user_role = req?.user?.role;
-    const { name, phone, category, business_number, company_name, location } =
-      req.body;
+    const job_request = req?.user?.job_request;
+    const { name, phone, category, business_number, company_name, location } = req.body;
     if (!name) {
       return res.status(400).send({
         status: 0,
@@ -391,14 +391,18 @@ const complete_profile = async (req, res) => {
           message: "please enter your company name",
         });
       } else {
+        const profile_image_path=req?.files?.profile_image[0]?.path.replace(/\\/g,"/")
+        const company_image_path=req?.files?.company_image[0]?.path.replace(/\\/g,"/")
         const employer = await User.findByIdAndUpdate(
           user_id,
           {
             name,
             phone_number: phone,
+            profile_image:profile_image_path,
             industry_category: category,
             business_number,
             company_name,
+            company_image:company_image_path,
             location,
             is_complete: true,
           },
@@ -410,9 +414,8 @@ const complete_profile = async (req, res) => {
           employer,
         });
       }
-    }
-    const job_request = req?.user?.job_request;
-    if (user_role === "employee") {
+    }else if (user_role === "employee") {
+      const profile_image_path=req?.files?.profile_image[0]?.path.replace(/\\/g,"/")
       if (job_request) {
         const employee = await User.findByIdAndUpdate(
           user_id,
@@ -421,6 +424,7 @@ const complete_profile = async (req, res) => {
             phone,
             category,
             location,
+            profile_image:profile_image_path,
             job_request: !job_request,
             is_complete: true,
           },
@@ -438,6 +442,7 @@ const complete_profile = async (req, res) => {
             name,
             phone,
             location,
+            profile_image:profile_image_path,
             job_request: !job_request,
             category,
             is_complete: true,
@@ -527,8 +532,8 @@ const change_password = async (req, res) => {
 
 const delete_profile = async (req, res) => {
   try {
-    const user_id=req?.user?._id
-    const password=req.body.password;
+    const user_id = req?.user?._id;
+    const password = req.body.password;
     if (!password) {
       return res.status(400).send({
         status: 0,
@@ -548,11 +553,7 @@ const delete_profile = async (req, res) => {
     const user_password = req?.user?.password;
     const matchPassword = await bcrypt.compare(password, user_password);
     if (matchPassword) {
-      await User.findByIdAndUpdate(
-        user_id,
-        { is_delete:true },
-        { new: true }
-      );
+      await User.findByIdAndUpdate(user_id, { is_delete: true }, { new: true });
       return res.status(200).send({
         status: 1,
         message: "user deleted successfully",

@@ -9,6 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended:false}));
 app.use("/api/v1/user",userRoutes)
+app.use("/uploads",express.static("uploads"));
 
 Connect().then(() => {
   const PORT = process.env.PORT || 3000;
@@ -17,3 +18,4 @@ Connect().then(() => {
     console.log(`Server running on port ${PORT}`);
   });
 });
+

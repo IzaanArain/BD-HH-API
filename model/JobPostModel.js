@@ -40,6 +40,10 @@ const jobPostSchema = new Schema(
       enum: ["Waiting Applicant", "In Progress", "Completed"],
       default: "Waiting Applicant",
     },
+    job_post_image:{
+      type: String,
+      default: "",
+    },
     employer_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
