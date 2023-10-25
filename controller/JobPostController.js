@@ -362,7 +362,7 @@ const get_job_post = async (req, res) => {
   }
 };
 
-//employee home page
+// employee home page
 const employee_job_posts = async (req, res) => {
   try {
     const job_posts = await JobPost.aggregate([
@@ -458,6 +458,7 @@ const employer_job_posts = async (req, res) => {
   }
 };
 
+// employee calender page
 const get_accepted_posts = async (req, res) => {
   try {
     const employee_id = req.user._id;
@@ -543,7 +544,7 @@ const applicant_job_posts = async (req, res) => {
 const job_applicants=async(req,res)=>{
   try{
     const post_id=req.query.post_id;
-    
+
   }catch(err){
     console.error("Error", err.message.red);
     return res.status(500).send({
