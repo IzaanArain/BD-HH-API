@@ -541,6 +541,7 @@ const applicant_job_posts = async (req, res) => {
     });
   }
 };
+
 const job_applicants=async(req,res)=>{
   try{
     const post_id=req.query.post_id;
