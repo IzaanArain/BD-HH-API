@@ -5,10 +5,12 @@ const reviewRateSchema=new Schema({
     employer_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "user",
+        default:null
       },
       employee_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "user",
+        default:null
       },
       rate:{
         type:Number,

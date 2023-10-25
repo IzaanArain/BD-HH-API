@@ -424,8 +424,8 @@ const complete_profile = async (req, res) => {
           user_id,
           {
             name,
-            phone,
-            category,
+            phone_number: phone,
+            industry_category: category,
             location,
             profile_image:profile_image_path,
             job_request: !job_request,
@@ -443,11 +443,11 @@ const complete_profile = async (req, res) => {
           user_id,
           {
             name,
-            phone,
+            phone_number: phone,
+            industry_category: category,
             location,
             profile_image:profile_image_path,
             job_request: !job_request,
-            category,
             is_complete: true,
           },
           { new: true }

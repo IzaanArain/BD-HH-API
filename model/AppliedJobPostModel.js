@@ -4,11 +4,13 @@ const {Schema}=mongoose;
 const appliedJobPostSchema=new Schema({
     job_post_id:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"jobPost"
+        ref:"jobPost",
+        default:null
     },
     user_id:{
         type:mongoose.Schema.Types.ObjectId,
-        ref:"user"
+        ref:"user",
+        default:null
     },
     is_applied:{
         type:Boolean,

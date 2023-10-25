@@ -16,8 +16,8 @@ const jobPostSchema = new Schema(
       default: null,
     },
     total_hours: {
-      type: String,
-      default: "",
+      type: Number,
+      default: null,
     },
     start_time: {
       type: String,
@@ -37,20 +37,28 @@ const jobPostSchema = new Schema(
     },
     job_status: {
       type: String,
-      enum: ["Waiting Applicant", "In Progress", "Completed"],
+      enum: [
+        "Waiting Applicant", 
+        "Assigned",
+        "Accepted",
+        "In Progress",
+        "Completed",
+      ],
       default: "Waiting Applicant",
     },
-    job_post_image:{
+    job_post_image: {
       type: String,
       default: "",
     },
     employer_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
+      default: null,
     },
     employee_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
+      default: null,
     },
     is_assigned: {
       type: Boolean,
