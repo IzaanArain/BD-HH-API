@@ -362,6 +362,7 @@ const get_job_post = async (req, res) => {
   }
 };
 
+//employee home page
 const employee_job_posts = async (req, res) => {
   try {
     const job_posts = await JobPost.aggregate([
@@ -408,6 +409,7 @@ const employee_job_posts = async (req, res) => {
   }
 };
 
+// employer home page
 const employer_job_posts = async (req, res) => {
   try {
     const employer_id = req?.user?._id;
@@ -481,7 +483,7 @@ const get_accepted_posts = async (req, res) => {
   }
 };
 
-const all_job_applicants = async (req, res) => {
+const applicant_job_posts = async (req, res) => {
   try {
     const job_applicants = await JobPost.aggregate([
       {
@@ -538,6 +540,18 @@ const all_job_applicants = async (req, res) => {
     });
   }
 };
+const job_applicants=async(req,res)=>{
+  try{
+    const post_id=req.query.post_id;
+    
+  }catch(err){
+    console.error("Error", err.message.red);
+    return res.status(500).send({
+      status: 0,
+      message: "Something went wrong",
+    });
+  }
+}
 
 const edit_job_post = async (req, res) => {
   try {
@@ -651,7 +665,7 @@ const edit_job_post = async (req, res) => {
   }
 };
 module.exports = {
-  create_job_post,
+  create_job_post,   
   apply_job,
   assign_job,
   accept_job,
