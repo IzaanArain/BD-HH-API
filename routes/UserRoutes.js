@@ -32,7 +32,7 @@ router.get("/get_job_post", user_validate_token,checkUserRole("employer"),get_jo
 router.get("/employee_job_posts", user_validate_token,checkUserRole("employee"),employee_job_posts);
 router.get("/employer_job_posts", user_validate_token,checkUserRole("employer"),employer_job_posts);
 router.get("/all_accepted_posts", user_validate_token,checkUserRole("employee"),get_accepted_posts);
-router.get("/edit_job_post", user_validate_token,checkUserRole("employer"),upload.fields([{name:"post_image"}]),edit_job_post);
+router.put("/edit_job_post", user_validate_token,checkUserRole("employer"),upload.fields([{name:"post_image"}]),edit_job_post);
 
 
 module.exports = router;
