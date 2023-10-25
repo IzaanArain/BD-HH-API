@@ -7,7 +7,7 @@ const create_job_post = async (req, res) => {
     const employer_id=req?.user?._id;
     const {
       job_title,
-      Job_description,
+      job_description,
       charges_per_hour,
       start_time,
       end_time,
@@ -18,7 +18,7 @@ const create_job_post = async (req, res) => {
         status: 0,
         message: "please enter title",
       });
-    } else if (!Job_description) {
+    } else if (!job_description) {
       return res.status(500).send({
         status: 0,
         message: "please enter description",
@@ -63,13 +63,16 @@ const create_job_post = async (req, res) => {
         message: "start date can not be after end date",
       });
     }
+    const post_image=req?.files?.post_image;
+    const post_image_path=post_image ? post_image[0]?.path?.replace(/\\/g,"/") : null
     const job_post = await JobPost.create({
       job_title,
-      Job_description,
+      job_description,
       charges_per_hour,
       start_time: date1.format("MMMM Do YYYY, h:mm:ss a"),
       end_time: date2.format("MMMM Do YYYY, h:mm:ss a"),
       post_date:current_date.format("MMMM Do YYYY, h:mm:ss a"),
+      job_post_image:post_image_path,
       location,
       employer_id:employer_id
     });
@@ -78,8 +81,8 @@ const create_job_post = async (req, res) => {
       message: "job post created successfully",
       job_post,
     });
-  } catch {
-    console.error("Error", err.message);
+  } catch(err) {
+    console.error("Error", err.message.red);
     return res.status(500).send({
       status: 0,
       message: "Something went wrong",
