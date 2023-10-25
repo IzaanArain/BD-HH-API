@@ -391,8 +391,10 @@ const complete_profile = async (req, res) => {
           message: "please enter your company name",
         });
       } else {
-        const profile_image_path=req?.files?.profile_image[0]?.path.replace(/\\/g,"/")
-        const company_image_path=req?.files?.company_image[0]?.path.replace(/\\/g,"/")
+        const profile_image=req?.files?.profile_image
+        const profile_image_path=profile_image ? profile_image[0]?.path?.replace(/\\/g,"/") : null
+        const company_image=req?.files?.company_image
+        const company_image_path=company_image ? company_image[0]?.path?.replace(/\\/g,"/") : null
         const employer = await User.findByIdAndUpdate(
           user_id,
           {
@@ -415,7 +417,8 @@ const complete_profile = async (req, res) => {
         });
       }
     }else if (user_role === "employee") {
-      const profile_image_path=req?.files?.profile_image[0]?.path.replace(/\\/g,"/")
+      const profile_image=req?.files?.profile_image
+      const profile_image_path=profile_image ? profile_image[0]?.path?.replace(/\\/g,"/") : null
       if (job_request) {
         const employee = await User.findByIdAndUpdate(
           user_id,
@@ -457,7 +460,7 @@ const complete_profile = async (req, res) => {
       }
     }
   } catch (err) {
-    console.error("Error", err.message);
+    console.error("Error", err.message.red);
     return res.status(500).send({
       status: 0,
       message: "Something went wrong",
