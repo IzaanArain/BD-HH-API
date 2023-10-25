@@ -11,7 +11,7 @@ const {
 } = require("../controller/UserController");
 const { user_validate_token } = require("../middleware/Auth");
 const { upload } = require("../middleware/Multer");
-const { create_job_post, get_job_post, assign_job, employee_job_posts, employer_job_posts, accept_job, get_accepted_posts, edit_job_post } = require("../controller/JobPostController");
+const { create_job_post, get_job_post, assign_job, employee_job_posts, employer_job_posts, accept_job, get_accepted_posts, edit_job_post, apply_job } = require("../controller/JobPostController");
 const { checkUserRole } = require("../middleware/AuthorizeRole");
 const router = express.Router();
 
@@ -33,6 +33,6 @@ router.get("/employee_job_posts", user_validate_token,checkUserRole("employee"),
 router.get("/employer_job_posts", user_validate_token,checkUserRole("employer"),employer_job_posts);
 router.get("/all_accepted_posts", user_validate_token,checkUserRole("employee"),get_accepted_posts);
 router.put("/edit_job_post", user_validate_token,checkUserRole("employer"),upload.fields([{name:"post_image"}]),edit_job_post);
-
+router.post("/apply_job",user_validate_token,checkUserRole("employee"),apply_job)
 
 module.exports = router;

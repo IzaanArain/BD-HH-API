@@ -2,6 +2,7 @@ const User = require("../model/UserModel");
 const JobPost = require("../model/JobPostModel");
 const moment = require("moment");
 const mongoose = require("mongoose");
+const ApplyJob = require("../model/AppliedJobPostModel");
 
 const create_job_post = async (req, res) => {
   try {
@@ -95,6 +96,59 @@ const create_job_post = async (req, res) => {
   }
 };
 
+const apply_job = async (req, res) => {
+  try {
+    const user_id = req.user._id;
+    const post_id = req.query.post_id;
+    if (!post_id) {
+      return res.status(400).send({
+        status: 0,
+        message: "please enter post ID",
+      });
+    } else if (!mongoose.isValidObjectId(post_id)) {
+      return res.status(400).send({
+        status: 0,
+        message: "Not a valid employee ID",
+      });
+    }
+    const job_post = await JobPost.findById(post_id);
+    if (!job_post) {
+      return res.status(400).send({
+        status: 0,
+        message: "job post not found",
+      });
+    }
+    const already_applied = await ApplyJob.findOne({
+      job_post_id: post_id,
+      user_id: user_id,
+    });
+    if (already_applied) {
+      return res.status(400).send({
+        status: 0,
+        message: "user has already applied",
+      });
+    } else {
+      const applied_user = await ApplyJob.create({
+        user_id: user_id,
+        job_post_id: post_id,
+        is_applied: true,
+        applied_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+      });
+      return res.status(400).send({
+        status: 0,
+        message: "employee has succesfully applied for job",
+        applied_user: applied_user,
+      });
+    }
+  } catch (err) {
+    console.error("Error", err.message.red);
+    return res.status(500).send({
+      status: 0,
+      message: "Something went wrong",
+    });
+  }
+};
+
 const assign_job = async (req, res) => {
   try {
     const { employee_id, post_id } = req.body;
@@ -138,6 +192,13 @@ const assign_job = async (req, res) => {
       return res.status(400).send({
         status: 0,
         message: "job post not found",
+      });
+    }
+    const job_assigned = req?.user?.is_assigned;
+    if (job_assigned) {
+      return res.status(400).send({
+        status: 0,
+        message: "job already assigned",
       });
     }
     const assigned_job = await JobPost.findByIdAndUpdate(
@@ -194,7 +255,6 @@ const accept_job = async (req, res) => {
       });
     }
     const job_employee_id = job_post?.employee_id;
-    console.log(job_employee_id, employee_id);
     if (job_employee_id.toString() !== employee_id.toString()) {
       return res.status(400).send({
         status: 0,
@@ -421,6 +481,64 @@ const get_accepted_posts = async (req, res) => {
   }
 };
 
+const all_job_applicants = async (req, res) => {
+  try {
+    const job_applicants = await JobPost.aggregate([
+      {
+        $match: {
+          job_status: "Waiting Applicant",
+        },
+      },
+      {
+        $lookup: {
+          from: "appliedjobposts",
+          localField: "_id",
+          foreignField: "job_post_id",
+          as: "applicants",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "employer_id",
+          foreignField: "_id",
+          as: "employer",
+        },
+      },
+      {
+        $unwind: {
+          path: "$employer",
+        },
+      },
+      {
+        $addFields: {
+          employer_name: "$employer.name",
+          company_name: "$employer.company_name",
+          company_image: "$employer.company_image",
+          company_location: "$employer.location",
+          applicants_count: {
+            $size: "$applicants",
+          },
+        },
+      },
+      {
+        $unset: ["applicants", "employer"],
+      },
+    ]);
+    return res.status(200).send({
+      status: 1,
+      message: "fetched all job posts",
+      job_posts:job_applicants
+    })
+  } catch (err) {
+    console.error("Error", err.message.red);
+    return res.status(500).send({
+      status: 0,
+      message: "Something went wrong",
+    });
+  }
+};
+
 const edit_job_post = async (req, res) => {
   try {
     const {
@@ -534,6 +652,7 @@ const edit_job_post = async (req, res) => {
 };
 module.exports = {
   create_job_post,
+  apply_job,
   assign_job,
   accept_job,
   get_job_post,
