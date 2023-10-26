@@ -7,6 +7,10 @@ const categorySchema = new Schema(
       type: String,
       default: "",
     },
+    is_delete: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

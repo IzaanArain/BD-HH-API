@@ -413,6 +413,24 @@ const employee_job_posts = async (req, res) => {
 const employer_job_posts = async (req, res) => {
   try {
     const employer_id = req?.user?._id;
+    if (!employer_id) {
+      return res.status(400).send({
+        status: 0,
+        message: "please enter employee ID",
+      });
+    } else if (!mongoose.isValidObjectId(employer_id)) {
+      return res.status(400).send({
+        status: 0,
+        message: "Not a valid employee ID",
+      });
+    }
+    const employer_exists = await JobPost.findOne({_id:employer_id,role:"employer"});
+    if (!employer_exists) {
+      return res.status(400).send({
+        status: 0,
+        message: "employee not found",
+      });
+    }
     const job_posts = await JobPost.aggregate([
       {
         $match: {
@@ -462,6 +480,24 @@ const employer_job_posts = async (req, res) => {
 const get_accepted_posts = async (req, res) => {
   try {
     const employee_id = req.user._id;
+    if (!employee_id) {
+      return res.status(400).send({
+        status: 0,
+        message: "please enter employee ID",
+      });
+    } else if (!mongoose.isValidObjectId(employee_id)) {
+      return res.status(400).send({
+        status: 0,
+        message: "Not a valid employee ID",
+      });
+    }
+    const employee_exists = await JobPost.findOne({_id:employee_id,role:"employee"});
+    if (!employee_exists) {
+      return res.status(400).send({
+        status: 0,
+        message: "employee not found",
+      });
+    }
     const accepted_posts = await JobPost.aggregate([
       {
         $match: {
@@ -484,7 +520,7 @@ const get_accepted_posts = async (req, res) => {
   }
 };
 
-const applicant_job_posts = async (req, res) => {
+const job_posts_applicants = async (req, res) => {
   try {
     const job_applicants = await JobPost.aggregate([
       {
@@ -531,8 +567,8 @@ const applicant_job_posts = async (req, res) => {
     return res.status(200).send({
       status: 1,
       message: "fetched all job posts",
-      job_posts:job_applicants
-    })
+      job_posts: job_applicants,
+    });
   } catch (err) {
     console.error("Error", err.message.red);
     return res.status(500).send({
@@ -542,18 +578,69 @@ const applicant_job_posts = async (req, res) => {
   }
 };
 
-const job_applicants=async(req,res)=>{
-  try{
-    const post_id=req.query.post_id;
-
-  }catch(err){
+const job_applicants = async (req, res) => {
+  try {
+    const post_id = req.query.post_id;
+    if (!post_id) {
+      return res.status(400).send({
+        status: 0,
+        message: "please enter post ID",
+      });
+    } else if (!mongoose.isValidObjectId(post_id)) {
+      return res.status(400).send({
+        status: 0,
+        message: "Not a valid post ID",
+      });
+    }
+    const job_post_exists = await JobPost.findById(post_id);
+    if (!job_post_exists) {
+      return res.status(400).send({
+        status: 0,
+        message: "job post not found",
+      });
+    }
+    const job_applicants = await ApplyJob.aggregate([
+      {
+        $match: {
+          job_post_id: new mongoose.Types.ObjectId(post_id),
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "user_id",
+          foreignField: "_id",
+          as: "user",
+        },
+      },
+      {
+        $unwind: {
+          path: "$user",
+        },
+      },
+      {
+        $addFields: {
+          employee_name: "$user.name",
+          employee_image: "$user.profile_image",
+        },
+      },
+      {
+        $unset: ["user"],
+      },
+    ]);
+    return res.status(200).send({
+      status:1,
+      message:"fetched all job applicants successfully",
+      job_applicants
+    })
+  } catch (err) {
     console.error("Error", err.message.red);
     return res.status(500).send({
       status: 0,
       message: "Something went wrong",
     });
   }
-}
+};
 
 const edit_job_post = async (req, res) => {
   try {
@@ -667,7 +754,7 @@ const edit_job_post = async (req, res) => {
   }
 };
 module.exports = {
-  create_job_post,   
+  create_job_post,
   apply_job,
   assign_job,
   accept_job,
@@ -675,5 +762,7 @@ module.exports = {
   employee_job_posts,
   employer_job_posts,
   get_accepted_posts,
+  job_posts_applicants,
+  job_applicants,
   edit_job_post,
 };
