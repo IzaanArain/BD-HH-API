@@ -38,7 +38,7 @@ const jobPostSchema = new Schema(
     job_status: {
       type: String,
       enum: [
-        "Waiting Applicant", 
+        "Waiting Applicant",
         "Assigned",
         "Accepted",
         "In Progress",
@@ -88,10 +88,10 @@ const jobPostSchema = new Schema(
       type: Number,
       default: null,
     },
-    is_delete:{
-      type:Boolean,
-      default:false
-    }
+    is_delete: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

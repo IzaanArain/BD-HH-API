@@ -1,28 +1,30 @@
-const mongoose=require("mongoose");
-const {Schema}=mongoose;
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
-const appliedJobPostSchema=new Schema({
-    job_post_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"jobPost",
-        default:null
+const appliedJobPostSchema = new Schema(
+  {
+    job_post_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "jobPost",
+      default: null,
     },
-    user_id:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"user",
-        default:null
+    user_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      default: null,
     },
-    is_applied:{
-        type:Boolean,
-        default:false
+    is_applied: {
+      type: Boolean,
+      default: false,
     },
-    applied_date:{
-        type:String,
-        default:""
-    }
-},
-{
-    timestamps:true
-});
+    applied_date: {
+      type: String,
+      default: "",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-module.exports=mongoose.model("appliedJobPost",appliedJobPostSchema)
+module.exports = mongoose.model("appliedJobPost", appliedJobPostSchema);

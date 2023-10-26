@@ -1,28 +1,31 @@
-const mongoose=require("mongoose");
-const {Schema}=mongoose;
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
-const cardSchema=new Schema({
-    card_holder_name:{
-        type:String,
-        default:""
+const cardSchema = new Schema(
+  {
+    card_holder_name: {
+      type: String,
+      default: "",
     },
-    card_number:{
-        type:Number,
-        default:null
+    card_number: {
+      type: Number,
+      default: null,
     },
-    expiry_date:{
-        type:String,
-        default:""
+    expiry_date: {
+      type: String,
+      default: "",
     },
-    cvv_number:{
-        type:Number,
-        default:null
+    cvv_number: {
+      type: Number,
+      default: null,
     },
-    employer_id:{
-        type:mongoose.Types.ObjectId,
-        ref:"user",
-        default:null
-    }
-})
+    employer_id: {
+      type: mongoose.Types.ObjectId,
+      ref: "user",
+      default: null,
+    },
+  },
+  { timestamps: true }
+);
 
-module.exports=mongoose.model("card",cardSchema);
+module.exports = mongoose.model("card", cardSchema);

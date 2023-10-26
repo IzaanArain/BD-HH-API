@@ -34,8 +34,8 @@ const userScehma = new Schema(
       default: null,
     },
     industry_category: {
-      type:String,
-      default:""
+      type: String,
+      default: "",
     },
     location: {
       type: String,
@@ -45,7 +45,7 @@ const userScehma = new Schema(
       type: String,
       default: "",
     },
-    company_image:{
+    company_image: {
       type: String,
       default: "",
     },
@@ -69,7 +69,7 @@ const userScehma = new Schema(
       type: Boolean,
       default: false,
     },
-    is_notification:{
+    is_notification: {
       type: Boolean,
       default: false,
     },
