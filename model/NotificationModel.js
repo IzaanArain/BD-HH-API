@@ -22,7 +22,7 @@ const notificationSchema = new Schema(
       type: String,
       default: "",
     },
-    description: {
+    notification_body: {
       type: String,
       default: "",
     },
