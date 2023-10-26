@@ -88,30 +88,6 @@ const employee_rate_reviews = async (req, res) => {
         message: "employee not found",
       });
     }
-    const rates_reviews = await User.aggregate([
-      {
-        $lookup: {
-          from: "reviewrates",
-          localField: "_id",
-          foreignField: "employee_id",
-          as: "reviewers",
-        },
-      },
-      {
-        $addFields: {
-          employee_rate: {
-            $avg: "$reviewers.rate",
-          },
-        },
-      },
-      {
-        $project: {
-          name: 1,
-          profile_image: 1,
-          employee_rate: 1,
-        },
-      },
-    ]);
     const employee_rate_reviews = await RateReview.aggregate([
       {
         $match: {
@@ -153,7 +129,6 @@ const employee_rate_reviews = async (req, res) => {
     return res.status(200).send({
       status: 1,
       message: "got all user reviews",
-      rates_reviews,
       employee_rate_reviews
     });
   } catch (err) {

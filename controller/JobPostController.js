@@ -642,8 +642,17 @@ const job_applicants = async (req, res) => {
         },
       },
       {
-        $unset: ["user", "reviews"],
+        $project:
+          {
+            employee_name: 1,
+            employee_image: 1,
+            employee_rate: 1,
+            _id: 0,
+          },
       },
+      // {
+      //   $unset: ["user", "reviews"],
+      // },
     ]);
     return res.status(200).send({
       status: 1,
