@@ -18,10 +18,6 @@ const paymentSchema = new Schema(
       ref: "user",
       default: null,
     },
-    card_id: {
-      type: mongoose.Types.ObjectId,
-      ref: "card",
-    },
     paid_amount: {
       type: Number,
       default: null,

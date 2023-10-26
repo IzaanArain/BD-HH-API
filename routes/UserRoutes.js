@@ -14,6 +14,7 @@ const { upload } = require("../middleware/Multer");
 const { create_job_post, get_job_post, assign_job, employee_job_posts, employer_job_posts, accept_job, get_accepted_posts, edit_job_post, apply_job, job_posts_applicants, job_applicants } = require("../controller/JobPostController");
 const { checkUserRole } = require("../middleware/AuthorizeRole");
 const { error_handler } = require("../middleware/ErrorHandler");
+const { rate_review_employee, employee_rate_reviews } = require("../controller/RateReviewController");
 const router = express.Router();
 
 // user routes
@@ -41,6 +42,9 @@ router.post("/apply_job",user_validate_token,checkUserRole("employee"),apply_job
 router.get("/job_posts_applicants",user_validate_token,checkUserRole("employer"),job_posts_applicants);
 router.get("/job_applicants",user_validate_token,checkUserRole("employer"),job_applicants);
 // rate & review employee by employer
+router.post("/rate_review_employee",user_validate_token,checkUserRole("employer"),rate_review_employee);
+router.get("/employee_rate_reviews",user_validate_token,checkUserRole("employer"),employee_rate_reviews);
+
 
 
 module.exports = router;

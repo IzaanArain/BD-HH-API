@@ -568,7 +568,7 @@ const delete_profile = async (req, res) => {
       });
     }
   } catch (err) {
-    console.error("Error", err.message);
+    console.error("Error", err.message.red);
     return res.status(500).send({
       status: 0,
       message: "Something went wrong",

@@ -424,7 +424,10 @@ const employer_job_posts = async (req, res) => {
         message: "Not a valid employee ID",
       });
     }
-    const employer_exists = await JobPost.findOne({_id:employer_id,role:"employer"});
+    const employer_exists = await JobPost.findOne({
+      _id: employer_id,
+      role: "employer",
+    });
     if (!employer_exists) {
       return res.status(400).send({
         status: 0,
@@ -491,7 +494,10 @@ const get_accepted_posts = async (req, res) => {
         message: "Not a valid employee ID",
       });
     }
-    const employee_exists = await JobPost.findOne({_id:employee_id,role:"employee"});
+    const employee_exists = await JobPost.findOne({
+      _id: employee_id,
+      role: "employee",
+    });
     if (!employee_exists) {
       return res.status(400).send({
         status: 0,
@@ -619,20 +625,31 @@ const job_applicants = async (req, res) => {
         },
       },
       {
-        $addFields: {
-          employee_name: "$user.name",
-          employee_image: "$user.profile_image",
+        $lookup: {
+          from: "reviewrates",
+          localField: "user._id",
+          foreignField: "employee_id",
+          as: "reviews",
         },
       },
       {
-        $unset: ["user"],
+        $addFields: {
+          employee_name: "$user.name",
+          employee_image: "$user.profile_image",
+          employee_rate: {
+            $avg: "$reviews.rate",
+          },
+        },
+      },
+      {
+        $unset: ["user", "reviews"],
       },
     ]);
     return res.status(200).send({
-      status:1,
-      message:"fetched all job applicants successfully",
-      job_applicants
-    })
+      status: 1,
+      message: "fetched all job applicants successfully",
+      job_applicants,
+    });
   } catch (err) {
     console.error("Error", err.message.red);
     return res.status(500).send({
