@@ -3,6 +3,7 @@ const JobPost = require("../model/JobPostModel");
 const moment = require("moment");
 const mongoose = require("mongoose");
 const ApplyJob = require("../model/AppliedJobPostModel");
+const Notification = require("../model/NotificationModel");
 
 const create_job_post = async (req, res) => {
   try {
@@ -43,7 +44,7 @@ const create_job_post = async (req, res) => {
     } else if (!location) {
       return res.status(500).send({
         status: 0,
-        message: "please enter title",
+        message: "please enter location",
       });
     }
     const current_date = moment(Date.now());
@@ -151,6 +152,7 @@ const apply_job = async (req, res) => {
 
 const assign_job = async (req, res) => {
   try {
+    const employer_id = req?.user?._id;
     const { employee_id, post_id } = req.body;
     if (!employee_id) {
       return res.status(400).send({
@@ -194,6 +196,13 @@ const assign_job = async (req, res) => {
         message: "job post not found",
       });
     }
+    const job_applied=await ApplyJob.findOne({user_id:employee_id,job_post_id:post_id});
+    if(!job_applied){
+      return res.status(400).send({
+        status: 0,
+        message: "employee has not applied yet",
+      });
+    }
     const job_assigned = req?.user?.is_assigned;
     if (job_assigned) {
       return res.status(400).send({
@@ -201,6 +210,7 @@ const assign_job = async (req, res) => {
         message: "job already assigned",
       });
     }
+    // assigning job
     const assigned_job = await JobPost.findByIdAndUpdate(
       post_id,
       {
@@ -211,10 +221,29 @@ const assign_job = async (req, res) => {
       },
       { new: true }
     );
+    // sending notification
+    const already_send_nofication = await Notification.findOne({
+      sender_id: employer_id,
+      receiver_id: employee_id,
+      job_post_id: post_id,
+    });
+    if (already_send_nofication) {
+      return res.status(400).send({
+        status: 0,
+        message: "Notification already Send for this job post",
+      });
+    }
+    const employee_job_notification = await Notification.create({
+      sender_id: employer_id,
+      receiver_id: employee_id,
+      job_post_id: post_id,
+      notification_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+    });
     return res.status(200).send({
       status: 1,
       message: "job post assigned successfully",
       job_post: assigned_job,
+      notification:employee_job_notification
     });
   } catch (err) {
     console.error("Error", err.message.red);
@@ -270,6 +299,9 @@ const accept_job = async (req, res) => {
       },
       { new: true }
     );
+    const employer_id=accepted_job?.employer_id;
+    console.log(employer_id)
+    await Notification.findOneAndDelete({receiver_id:employee_id,sender_id:employer_id,job_post_id:post_id});
     return res.status(200).send({
       status: 1,
       message: "Job accepted successfully!",
@@ -413,27 +445,6 @@ const employee_job_posts = async (req, res) => {
 const employer_job_posts = async (req, res) => {
   try {
     const employer_id = req?.user?._id;
-    if (!employer_id) {
-      return res.status(400).send({
-        status: 0,
-        message: "please enter employee ID",
-      });
-    } else if (!mongoose.isValidObjectId(employer_id)) {
-      return res.status(400).send({
-        status: 0,
-        message: "Not a valid employee ID",
-      });
-    }
-    const employer_exists = await JobPost.findOne({
-      _id: employer_id,
-      role: "employer",
-    });
-    if (!employer_exists) {
-      return res.status(400).send({
-        status: 0,
-        message: "employee not found",
-      });
-    }
     const job_posts = await JobPost.aggregate([
       {
         $match: {
@@ -494,7 +505,7 @@ const get_accepted_posts = async (req, res) => {
         message: "Not a valid employee ID",
       });
     }
-    const employee_exists = await JobPost.findOne({
+    const employee_exists = await User.findOne({
       _id: employee_id,
       role: "employee",
     });
@@ -528,9 +539,11 @@ const get_accepted_posts = async (req, res) => {
 
 const job_posts_applicants = async (req, res) => {
   try {
+    const employer_id=req?.user?._id;
     const job_applicants = await JobPost.aggregate([
       {
         $match: {
+          employer_id:new mongoose.Types.ObjectId(employer_id),
           job_status: "Waiting Applicant",
         },
       },

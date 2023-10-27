@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const notificationSchema = new Schema(
   {
-    send_id: {
+    sender_id: {
       type: mongoose.Types.ObjectId,
       ref: "user",
       default: null,

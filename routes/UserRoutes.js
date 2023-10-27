@@ -16,6 +16,7 @@ const { create_job_post, get_job_post, assign_job, employee_job_posts, employer_
 const { checkUserRole } = require("../middleware/AuthorizeRole");
 const { error_handler } = require("../middleware/ErrorHandler");
 const { rate_review_employee, employee_rate_reviews } = require("../controller/RateReviewController");
+const { employee_job_notifications} = require("../controller/NotificationController");
 const router = express.Router();
 
 // user routes
@@ -46,6 +47,10 @@ router.get("/job_applicants",user_validate_token,checkUserRole("employer"),job_a
 // rate & review employee by employer
 router.post("/rate_review_employee",user_validate_token,checkUserRole("employer"),rate_review_employee);
 router.get("/employee_rate_reviews",user_validate_token,checkUserRole("employer"),employee_rate_reviews);
+// employer job nofications
+// employee job nofications
+router.get("/employee_job_notifications",user_validate_token,checkUserRole("employee"),employee_job_notifications);
+
 
 
 
