@@ -7,7 +7,8 @@ const {
   reset_password,
   complete_profile,
   change_password,
-  delete_profile
+  delete_profile,
+  signout
 } = require("../controller/UserController");
 const { user_validate_token } = require("../middleware/Auth");
 const { upload } = require("../middleware/Multer");
@@ -26,6 +27,7 @@ router.post("/reset_password", reset_password);
 router.post("/complete_profile", user_validate_token,upload.fields([{name:'profile_image'},{name:'company_image'}]),error_handler, complete_profile);
 router.post("/change_password", user_validate_token, change_password);
 router.post("/delete_profile", user_validate_token,delete_profile);
+router.post("/signout", user_validate_token,signout);
 // employer job routes
 router.post("/create_job_post", user_validate_token,checkUserRole("employer"),upload.fields([{name:"post_image"}]),error_handler,create_job_post);
 router.post("/assign_job", user_validate_token,checkUserRole("employer"),assign_job);
@@ -44,6 +46,7 @@ router.get("/job_applicants",user_validate_token,checkUserRole("employer"),job_a
 // rate & review employee by employer
 router.post("/rate_review_employee",user_validate_token,checkUserRole("employer"),rate_review_employee);
 router.get("/employee_rate_reviews",user_validate_token,checkUserRole("employer"),employee_rate_reviews);
+
 
 
 

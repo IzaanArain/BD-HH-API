@@ -779,6 +779,7 @@ const edit_job_post = async (req, res) => {
     });
   }
 };
+
 module.exports = {
   create_job_post,
   apply_job,

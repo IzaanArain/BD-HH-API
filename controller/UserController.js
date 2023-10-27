@@ -576,6 +576,28 @@ const delete_profile = async (req, res) => {
   }
 };
 
+const signout=async(req,res)=>{
+  try{
+    const user_id=req?.user?._id;
+    const signout_user=await User.findByIdAndUpdate(
+      user_id,
+      {user_auth:null},
+      {new:true}
+    );
+    return res.status(200).send({
+      status:1,
+      message:"signout succesfully"
+    });
+
+  }catch(err){
+    console.error("Error", err.message.red);
+    return res.status(500).send({
+      status: 0,
+      message: "Something went wrong",
+    });
+  }
+}
+
 module.exports = {
   signup,
   otp_verfy,
@@ -585,4 +607,5 @@ module.exports = {
   complete_profile,
   change_password,
   delete_profile,
+  signout
 };

@@ -126,10 +126,35 @@ const employee_rate_reviews = async (req, res) => {
         },
       },
     ]);
+
+    // const employee_rate_reviews = await User.aggregate([
+    //   {
+    //     $match: {
+    //       _id: new mongoose.Types.ObjectId(employee_id),
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "reviewrates",
+    //       localField: "_id",
+    //       foreignField: "employee_id",
+    //       as: "reviews",
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "users",
+    //       localField: "reviews.employer_id",
+    //       foreignField: "_id",
+    //       as: "employers",
+    //     },
+    //   },
+    // ]);
+    
     return res.status(200).send({
       status: 1,
       message: "got all user reviews",
-      employee_rate_reviews
+      employee_rate_reviews,
     });
   } catch (err) {
     console.error("Error", err.message.red);
