@@ -793,6 +793,10 @@ const edit_job_post = async (req, res) => {
   }
 };
 
+const complete_job=async(req,res)=>{
+};
+
+
 module.exports = {
   create_job_post,
   apply_job,
