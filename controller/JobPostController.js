@@ -123,6 +123,7 @@ const apply_job = async (req, res) => {
       job_post_id: post_id,
       user_id: user_id,
     });
+    const employer_id = job_post?.employer_id;
     if (already_applied) {
       return res.status(400).send({
         status: 0,
@@ -135,10 +136,18 @@ const apply_job = async (req, res) => {
         is_applied: true,
         applied_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
       });
+      const applied_notification = await Notification.create({
+        sender_id: user_id,
+        receiver_id: employer_id,
+        job_post_id: post_id,
+        notification_body: "User Applied",
+        notification_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+      });
       return res.status(400).send({
         status: 0,
         message: "employee has succesfully applied for job",
         applied_user: applied_user,
+        notification: applied_notification,
       });
     }
   } catch (err) {
@@ -241,6 +250,8 @@ const assign_job = async (req, res) => {
       return res.status(400).send({
         status: 0,
         message: "Notification already Send for this job post",
+        job_post: assigned_job,
+        notification:already_send_nofication
       });
     }
     const employee_job_notification = await Notification.create({
@@ -310,16 +321,22 @@ const accept_job = async (req, res) => {
       { new: true }
     );
     const employer_id = accepted_job?.employer_id;
-    console.log(employer_id);
     await Notification.findOneAndDelete({
       receiver_id: employee_id,
       sender_id: employer_id,
       job_post_id: post_id,
     });
+    const accepted_notification = await Notification.create({
+      receiver_id: employer_id,
+      sender_id: employee_id,
+      job_post_id: post_id,
+      notification_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+    });
     return res.status(200).send({
       status: 1,
       message: "Job accepted successfully!",
       job_post: accepted_job,
+      notification: accepted_notification,
     });
   } catch (err) {
     console.error("Error", err.message.red);
@@ -808,7 +825,159 @@ const edit_job_post = async (req, res) => {
 
 const complete_job = async (req, res) => {
   try {
+    const employee_id = req?.user?._id;
+    const post_id = req?.query?.post_id;
+    if (!post_id) {
+      return res.status(400).send({
+        status: 0,
+        message: "please enter post ID",
+      });
+    } else if (!mongoose.isValidObjectId(post_id)) {
+      return res.status(400).send({
+        status: 0,
+        message: "Not a valid post ID",
+      });
+    }
+    const job_post_exists = await JobPost.findById(post_id);
+    if (!job_post_exists) {
+      return res.status(400).send({
+        status: 0,
+        message: "job post not found",
+      });
+    }
+    const assigned_employee = job_post_exists?.employee_id;
+    if (employee_id.toString() !== assigned_employee.toString()) {
+      return res.status(400).send({
+        status: 0,
+        message: "job not assigned to this employee",
+      });
+    }
+    const job_accepted = job_post_exists?.is_accepted;
+    if (!job_accepted) {
+      return res.status(400).send({
+        status: 0,
+        message: "job has not been accepted by employee employee",
+      });
+    }
+    const employer_id = job_post_exists?.employer_id;
+    const job_accepted_time = job_post_exists?.accepted_date;
+    const job_end_time = job_post_exists?.end_time;
+    const date1 = moment(job_accepted_time, "MMMM Do YYYY, h:mm:ss a");
+    const date2 = moment(job_end_time, "MMMM Do YYYY, h:mm:ss a");
+    const completion_time = moment(Date.now());
+
+    const already_send_nofication=await Notification.findOne({
+      sender_id: employee_id,
+      receiver_id: employer_id,
+      job_post_id: post_id,
+    })
+    if (completion_time.isBefore(date1)) {
+      return res.status(400).send({
+        status: 0,
+        message: "completion time can not be before start time",
+      });
+    } else if (completion_time.isAfter(date2)) {
+      const job_post = await JobPost.findByIdAndUpdate(
+        employee_id,
+        {
+          status: "Late submission",
+          is_late: true,
+          late_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+        },
+        { new: true }
+      );
+      if(already_send_nofication){
+        res.status(200).send({
+          status: 1,
+          message: "Already sent notification",
+          job_post: job_post,
+          notification: already_send_nofication,
+        });
+      }else{
+        const employer_notification = await Notification.create({
+          sender_id: employee_id,
+          receiver_id: employer_id,
+          job_post_id: post_id,
+          title:"Late submission",
+          notification_body: "Hours ended",
+          notification_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+        });
+        res.status(200).send({
+          status: 1,
+          message: "Failed to complete job on time",
+          job_post: job_post,
+          notification: employer_notification,
+        });
+      }
+    } else {
+      const job_completed = await JobPost.findByIdAndUpdate(post_id, {
+        status: "Completed",
+        job_completed: true,
+        user_completion_date: moment(Date.now()).format(
+          "MMMM Do YYYY, h:mm:ss a"
+        ),
+      });
+      if(already_send_nofication){
+        res.status(200).send({
+          status: 1,
+          message: "Already sent notification",
+          job_post: job_completed,
+          notification: already_send_nofication,
+        });
+      }else{
+        const completion_notification = await Notification.create({
+          sender_id: employee_id,
+          receiver_id: employer_id,
+          job_post_id: post_id,
+          notification_body: "Job Completed",
+          notification_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+        });
+        return res.status(200).send({
+          status: 1,
+          message: "Job has been completed successfully",
+          job: job_completed,
+          notification: completion_notification,
+        });
+      } 
+    }
   } catch (err) {
+    console.error("Error", err.message.red);
+    return res.status(500).send({
+      status: 0,
+      message: "Something went wrong",
+    });
+  }
+};
+
+const get_job_employee = async (req, res) => {
+  try {
+    const post_id=req?.query?.post_id;
+    if (!post_id) {
+      return res.status(400).send({
+        status: 0,
+        message: "please enter post ID",
+      });
+    } else if (!mongoose.isValidObjectId(post_id)) {
+      return res.status(400).send({
+        status: 0,
+        message: "Not a valid post ID",
+      });
+    }
+    const job_post_exists = await JobPost.findById(post_id);
+    if (!job_post_exists) {
+      return res.status(400).send({
+        status: 0,
+        message: "job post not found",
+      });
+    };
+    const job_post_employee=await JobPost.aggregate();
+
+    return res.status(200).send({
+      status:1,
+      message:"Fetched job post employee successfully",
+      job_post_employee
+    })
+  } catch {
     console.error("Error", err.message.red);
     return res.status(500).send({
       status: 0,
@@ -829,4 +998,6 @@ module.exports = {
   job_posts_applicants,
   job_applicants,
   edit_job_post,
+  complete_job,
+  get_job_employee
 };

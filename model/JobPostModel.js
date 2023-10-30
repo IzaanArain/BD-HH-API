@@ -43,6 +43,8 @@ const jobPostSchema = new Schema(
         "Accepted",
         "In Progress",
         "Completed",
+        "Paided",
+        "Late submission",
       ],
       default: "Waiting Applicant",
     },
@@ -84,13 +86,21 @@ const jobPostSchema = new Schema(
       type: String,
       default: "",
     },
-    paid_amount: {
-      type: Number,
-      default: null,
+    is_paid: {
+      type: Boolean,
+      default: false,
     },
     is_delete: {
       type: Boolean,
       default: false,
+    },
+    is_late: {
+      type: Boolean,
+      default: false,
+    },
+    late_date: {
+      type: String,
+      default: "",
     },
   },
   {

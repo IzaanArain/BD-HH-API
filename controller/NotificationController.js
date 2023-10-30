@@ -86,12 +86,12 @@ const mongoose = require("mongoose");
 
 const employee_job_notifications = async (req, res) => {
   try {
-    const employee_id=req?.user?._id;
-    console.log(employee_id)
+    const employee_id = req?.user?._id;
+    console.log(employee_id);
     const job_notifications = await Notification.aggregate([
       {
         $match: {
-          receiver_id:employee_id,
+          receiver_id: employee_id,
         },
       },
       {
@@ -137,11 +137,76 @@ const employee_job_notifications = async (req, res) => {
       },
     ]);
     return res.status(200).send({
-      status:1,
-      message:'fetched all job notifications successfully',
-      job_notifications
-    })
+      status: 1,
+      message: "fetched all job notifications successfully",
+      job_notifications,
+    });
   } catch (err) {
+    console.error("Error", err.message.red);
+    return res.status(500).send({
+      status: 0,
+      message: "Something went wrong",
+    });
+  }
+};
+
+const employer_notification = async (req, res) => {
+  try {
+    const employer_id = req?.user?._id;
+    const employer_notifications = await Notification.aggregate([
+      {
+        $match: {
+          receiver_id: new mongoose.Types.ObjectId(employer_id),
+        },
+      },
+      {
+        $lookup: {
+          from: "jobposts",
+          localField: "job_post_id",
+          foreignField: "_id",
+          as: "job_post",
+        },
+      },
+      {
+        $unwind: {
+          path: "$job_post",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "job_post.employee_id",
+          foreignField: "_id",
+          as: "employee",
+        },
+      },
+      {
+        $unwind: {
+          path: "$employee",
+        },
+      },
+      {
+        $addFields: {
+          job_title: "$job_post.job_title",
+          job_description: "$job_post.job_description",
+          charges_per_hour: "$job_post.charges_per_hour",
+          start_time: "$job_post.start_time",
+          end_time: "$job_post.end_time",
+          employee_name: "$employee.name",
+          employee_location: "$employee.location",
+          Job_status: "$job_post.job_status",
+        },
+      },
+      {
+        $unset: ["job_post", "employee"],
+      },
+    ]);
+    return res.status(200).send({
+      status: 1,
+      message: "fetched all employer notifications successfully",
+      notifications: employer_notifications,
+    });
+  } catch {
     console.error("Error", err.message.red);
     return res.status(500).send({
       status: 0,
@@ -152,4 +217,5 @@ const employee_job_notifications = async (req, res) => {
 
 module.exports = {
   employee_job_notifications,
+  employer_notification,
 };

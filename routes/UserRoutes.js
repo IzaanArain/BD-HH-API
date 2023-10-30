@@ -8,15 +8,36 @@ const {
   complete_profile,
   change_password,
   delete_profile,
-  signout
+  signout,
 } = require("../controller/UserController");
 const { user_validate_token } = require("../middleware/Auth");
 const { upload } = require("../middleware/Multer");
-const { create_job_post, get_job_post, assign_job, employee_job_posts, employer_job_posts, accept_job, get_accepted_posts, edit_job_post, apply_job, job_posts_applicants, job_applicants } = require("../controller/JobPostController");
+const {
+  create_job_post,
+  get_job_post,
+  assign_job,
+  employee_job_posts,
+  employer_job_posts,
+  accept_job,
+  get_accepted_posts,
+  edit_job_post,
+  apply_job,
+  job_posts_applicants,
+  job_applicants,
+  complete_job,
+  get_job_employee,
+} = require("../controller/JobPostController");
 const { checkUserRole } = require("../middleware/AuthorizeRole");
 const { error_handler } = require("../middleware/ErrorHandler");
-const { rate_review_employee, employee_rate_reviews } = require("../controller/RateReviewController");
-const { employee_job_notifications} = require("../controller/NotificationController");
+const {
+  rate_review_employee,
+  employee_rate_reviews,
+} = require("../controller/RateReviewController");
+const {
+  employee_job_notifications,
+  employer_notification,
+} = require("../controller/NotificationController");
+const { add_card, delete_card } = require("../controller/CardController");
 const router = express.Router();
 
 // user routes
@@ -35,24 +56,26 @@ router.post("/assign_job", user_validate_token,checkUserRole("employer"),assign_
 router.get("/get_job_post", user_validate_token,checkUserRole("employer"),get_job_post);
 router.get("/employer_job_posts", user_validate_token,checkUserRole("employer"),employer_job_posts);
 router.put("/edit_job_post", user_validate_token,checkUserRole("employer"),upload.fields([{name:"post_image"}]),error_handler,edit_job_post);
+router.get("/get_job_employee",user_validate_token,checkUserRole("employer"),get_job_employee)
 // employee job routes
 router.post("/accept_job", user_validate_token,checkUserRole("employee"),accept_job);
 router.get("/employee_job_posts", user_validate_token,checkUserRole("employee"),employee_job_posts);
 router.get("/all_accepted_posts", user_validate_token,checkUserRole("employee"),get_accepted_posts);
+router.post("/complete_job", user_validate_token,checkUserRole("employee"),complete_job);
 // employee apply job routes
 router.post("/apply_job",user_validate_token,checkUserRole("employee"),apply_job);
 // employer apply job routes
 router.get("/job_posts_applicants",user_validate_token,checkUserRole("employer"),job_posts_applicants);
 router.get("/job_applicants",user_validate_token,checkUserRole("employer"),job_applicants);
+// employer job nofications
+router.get("/employer_notifications",user_validate_token,checkUserRole("employer"),employer_notification);
+// employee job nofications
+router.get("/employee_job_notifications",user_validate_token,checkUserRole("employee"),employee_job_notifications);
+// employer Card routes
+router.post("/add_card",user_validate_token,checkUserRole("employer"),add_card);
+router.put("/delete_card",user_validate_token,checkUserRole("employer"),delete_card);
 // rate & review employee by employer
 router.post("/rate_review_employee",user_validate_token,checkUserRole("employer"),rate_review_employee);
 router.get("/employee_rate_reviews",user_validate_token,checkUserRole("employer"),employee_rate_reviews);
-// employer job nofications
-// employee job nofications
-router.get("/employee_job_notifications",user_validate_token,checkUserRole("employee"),employee_job_notifications);
-
-
-
-
 
 module.exports = router;

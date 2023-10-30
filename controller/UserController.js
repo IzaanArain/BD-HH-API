@@ -340,7 +340,8 @@ const complete_profile = async (req, res) => {
     const user_id = req?.user?._id;
     const user_role = req?.user?.role;
     const job_request = req?.user?.job_request;
-    const { name, phone, category, business_number, company_name, location } = req.body;
+    const { name, phone, category, business_number, company_name, location } =
+      req.body;
     if (!name) {
       return res.status(400).send({
         status: 0,
@@ -391,20 +392,24 @@ const complete_profile = async (req, res) => {
           message: "please enter your company name",
         });
       } else {
-        const profile_image=req?.files?.profile_image
-        const profile_image_path=profile_image ? profile_image[0]?.path?.replace(/\\/g,"/") : null
-        const company_image=req?.files?.company_image
-        const company_image_path=company_image ? company_image[0]?.path?.replace(/\\/g,"/") : null
+        const profile_image = req?.files?.profile_image;
+        const profile_image_path = profile_image
+          ? profile_image[0]?.path?.replace(/\\/g, "/")
+          : null;
+        const company_image = req?.files?.company_image;
+        const company_image_path = company_image
+          ? company_image[0]?.path?.replace(/\\/g, "/")
+          : null;
         const employer = await User.findByIdAndUpdate(
           user_id,
           {
             name,
             phone_number: phone,
-            profile_image:profile_image_path,
+            profile_image: profile_image_path,
             industry_category: category,
             business_number,
             company_name,
-            company_image:company_image_path,
+            company_image: company_image_path,
             location,
             is_complete: true,
           },
@@ -416,9 +421,11 @@ const complete_profile = async (req, res) => {
           employer,
         });
       }
-    }else if (user_role === "employee") {
-      const profile_image=req?.files?.profile_image
-      const profile_image_path=profile_image ? profile_image[0]?.path?.replace(/\\/g,"/") : null
+    } else if (user_role === "employee") {
+      const profile_image = req?.files?.profile_image;
+      const profile_image_path = profile_image
+        ? profile_image[0]?.path?.replace(/\\/g, "/")
+        : null;
       if (job_request) {
         const employee = await User.findByIdAndUpdate(
           user_id,
@@ -427,7 +434,7 @@ const complete_profile = async (req, res) => {
             phone_number: phone,
             industry_category: category,
             location,
-            profile_image:profile_image_path,
+            profile_image: profile_image_path,
             job_request: !job_request,
             is_complete: true,
           },
@@ -446,7 +453,7 @@ const complete_profile = async (req, res) => {
             phone_number: phone,
             industry_category: category,
             location,
-            profile_image:profile_image_path,
+            profile_image: profile_image_path,
             job_request: !job_request,
             is_complete: true,
           },
@@ -576,27 +583,26 @@ const delete_profile = async (req, res) => {
   }
 };
 
-const signout=async(req,res)=>{
-  try{
-    const user_id=req?.user?._id;
-    const signout_user=await User.findByIdAndUpdate(
+const signout = async (req, res) => {
+  try {
+    const user_id = req?.user?._id;
+    const signout_user = await User.findByIdAndUpdate(
       user_id,
-      {user_auth:null},
-      {new:true}
+      { user_auth: null },
+      { new: true }
     );
     return res.status(200).send({
-      status:1,
-      message:"signout succesfully"
+      status: 1,
+      message: "signout succesfully",
     });
-
-  }catch(err){
+  } catch (err) {
     console.error("Error", err.message.red);
     return res.status(500).send({
       status: 0,
       message: "Something went wrong",
     });
   }
-}
+};
 
 module.exports = {
   signup,
@@ -607,5 +613,5 @@ module.exports = {
   complete_profile,
   change_password,
   delete_profile,
-  signout
+  signout,
 };
