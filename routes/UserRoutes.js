@@ -38,6 +38,7 @@ const {
   employer_notification,
 } = require("../controller/NotificationController");
 const { add_card, delete_card } = require("../controller/CardController");
+const { pay_job_employee } = require("../controller/PaymentController");
 const router = express.Router();
 
 // user routes
@@ -74,6 +75,8 @@ router.get("/employee_job_notifications",user_validate_token,checkUserRole("empl
 // employer Card routes
 router.post("/add_card",user_validate_token,checkUserRole("employer"),add_card);
 router.put("/delete_card",user_validate_token,checkUserRole("employer"),delete_card);
+// employer payment route
+router.post("/pay_job_employee",user_validate_token,checkUserRole("employer"),pay_job_employee)
 // rate & review employee by employer
 router.post("/rate_review_employee",user_validate_token,checkUserRole("employer"),rate_review_employee);
 router.get("/employee_rate_reviews",user_validate_token,checkUserRole("employer"),employee_rate_reviews);
