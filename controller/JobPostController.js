@@ -217,17 +217,17 @@ const assign_job = async (req, res) => {
       });
     }
 
-    // const job_start_time=job_post?.start_time;
-    // const Job_end_time=job_post?.end_time;
-    // const date1=moment(job_start_time,"MMMM Do YYYY, h:mm:ss a");
-    // const date2=moment(Job_end_time,"MMMM Do YYYY, h:mm:ss a");
-    // const assign_time=moment(Date.now());
-    // if(assign_time.isAfter(date1)){
-    //   return res.status(400).send({
-    //     status: 0,
-    //     message: "user can not be assigned after start date",
-    //   });
-    // };
+    const job_start_time=job_post?.start_time;
+    const Job_end_time=job_post?.end_time;
+    const date1=moment(job_start_time,"MMMM Do YYYY, h:mm:ss a");
+    const date2=moment(Job_end_time,"MMMM Do YYYY, h:mm:ss a");
+    const assign_time=moment(Date.now());
+    if(assign_time.isAfter(date2)){
+      return res.status(400).send({
+        status: 0,
+        message: "user can not be assigned after end date",
+      });
+    };
 
     const job_applied = await ApplyJob.findOne({
       user_id: employee_id,
@@ -260,7 +260,7 @@ const assign_job = async (req, res) => {
         employee_id: employee_id,
         job_status: "Assigned",
         is_assigned: true,
-        assigned_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+        assigned_date: assign_time.format("MMMM Do YYYY, h:mm:ss a"),
       },
       { new: true }
     );
@@ -335,12 +335,23 @@ const accept_job = async (req, res) => {
         message: "job not assigned to this employee",
       });
     }
+    const job_start_time=job_post?.start_time;
+    const Job_end_time=job_post?.end_time;
+    const date1=moment(job_start_time,"MMMM Do YYYY, h:mm:ss a");
+    const date2=moment(Job_end_time,"MMMM Do YYYY, h:mm:ss a");
+    const accept_job_time=moment(Date.now());
+    if(accept_job_time.isAfter(date2)){
+      return res.status(400).send({
+        status: 0,
+        message: "user can not accept date after end date",
+      });
+    };
     const accepted_job = await JobPost.findByIdAndUpdate(
       post_id,
       {
         job_status: "Accepted",
         is_accepted: true,
-        accepted_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+        accepted_date: accept_job_time.format("MMMM Do YYYY, h:mm:ss a"),
       },
       { new: true }
     );
