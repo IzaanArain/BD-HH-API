@@ -119,6 +119,17 @@ const apply_job = async (req, res) => {
         message: "job post not found",
       });
     }
+    const job_start_time = job_post?.start_time;
+    const Job_end_time = job_post?.end_time;
+    const date1 = moment(job_start_time, "MMMM Do YYYY, h:mm:ss a");
+    const date2 = moment(Job_end_time, "MMMM Do YYYY, h:mm:ss a");
+    const applied_time = moment(Date.now());
+    if (applied_time.isAfter(date1)) {
+      return res.status(400).send({
+        status: 0,
+        message: "user can not apply after start date",
+      });
+    }
     const already_applied = await ApplyJob.findOne({
       job_post_id: post_id,
       user_id: user_id,
@@ -134,7 +145,7 @@ const apply_job = async (req, res) => {
         user_id: user_id,
         job_post_id: post_id,
         is_applied: true,
-        applied_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+        applied_date: applied_time.format("MMMM Do YYYY, h:mm:ss a"),
       });
       const applied_notification = await Notification.create({
         sender_id: user_id,
@@ -205,6 +216,19 @@ const assign_job = async (req, res) => {
         message: "job post not found",
       });
     }
+
+    // const job_start_time=job_post?.start_time;
+    // const Job_end_time=job_post?.end_time;
+    // const date1=moment(job_start_time,"MMMM Do YYYY, h:mm:ss a");
+    // const date2=moment(Job_end_time,"MMMM Do YYYY, h:mm:ss a");
+    // const assign_time=moment(Date.now());
+    // if(assign_time.isAfter(date1)){
+    //   return res.status(400).send({
+    //     status: 0,
+    //     message: "user can not be assigned after start date",
+    //   });
+    // };
+
     const job_applied = await ApplyJob.findOne({
       user_id: employee_id,
       job_post_id: post_id,
@@ -251,7 +275,7 @@ const assign_job = async (req, res) => {
         status: 0,
         message: "Notification already Send for this job post",
         job_post: assigned_job,
-        notification:already_send_nofication
+        notification: already_send_nofication,
       });
     }
     const employee_job_notification = await Notification.create({
@@ -866,11 +890,11 @@ const complete_job = async (req, res) => {
     const date2 = moment(job_end_time, "MMMM Do YYYY, h:mm:ss a");
     const completion_time = moment(Date.now());
 
-    const already_send_nofication=await Notification.findOne({
+    const already_send_nofication = await Notification.findOne({
       sender_id: employee_id,
       receiver_id: employer_id,
       job_post_id: post_id,
-    })
+    });
     if (completion_time.isBefore(date1)) {
       return res.status(400).send({
         status: 0,
@@ -886,21 +910,23 @@ const complete_job = async (req, res) => {
         },
         { new: true }
       );
-      if(already_send_nofication){
+      if (already_send_nofication) {
         res.status(200).send({
           status: 1,
           message: "Already sent notification",
           job_post: job_post,
           notification: already_send_nofication,
         });
-      }else{
+      } else {
         const employer_notification = await Notification.create({
           sender_id: employee_id,
           receiver_id: employer_id,
           job_post_id: post_id,
-          title:"Late submission",
+          title: "Late submission",
           notification_body: "Hours ended",
-          notification_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+          notification_date: moment(Date.now()).format(
+            "MMMM Do YYYY, h:mm:ss a"
+          ),
         });
         res.status(200).send({
           status: 1,
@@ -917,20 +943,22 @@ const complete_job = async (req, res) => {
           "MMMM Do YYYY, h:mm:ss a"
         ),
       });
-      if(already_send_nofication){
+      if (already_send_nofication) {
         res.status(200).send({
           status: 1,
           message: "Already sent notification",
           job_post: job_completed,
           notification: already_send_nofication,
         });
-      }else{
+      } else {
         const completion_notification = await Notification.create({
           sender_id: employee_id,
           receiver_id: employer_id,
           job_post_id: post_id,
           notification_body: "Job Completed",
-          notification_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+          notification_date: moment(Date.now()).format(
+            "MMMM Do YYYY, h:mm:ss a"
+          ),
         });
         return res.status(200).send({
           status: 1,
@@ -938,7 +966,7 @@ const complete_job = async (req, res) => {
           job: job_completed,
           notification: completion_notification,
         });
-      } 
+      }
     }
   } catch (err) {
     console.error("Error", err.message.red);
@@ -951,7 +979,8 @@ const complete_job = async (req, res) => {
 
 const get_job_employee = async (req, res) => {
   try {
-    const post_id=req?.query?.post_id;
+    const employer_id = req?.user?._id;
+    const post_id = req?.query?.post_id;
     if (!post_id) {
       return res.status(400).send({
         status: 0,
@@ -969,14 +998,53 @@ const get_job_employee = async (req, res) => {
         status: 0,
         message: "job post not found",
       });
-    };
-    const job_post_employee=await JobPost.aggregate();
+    }
+    const job_employer_id = job_post_exists?.employer_id;
+    if (job_employer_id.toString() !== employer_id.toString()) {
+      return res.status(400).send({
+        status: 0,
+        message: "Employer Not Authorized to access job",
+      });
+    }
+    const job_post_employee = await JobPost.aggregate([
+      {
+        $match: {
+          _id: new mongoose.Types.ObjectId(post_id),
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "employee_id",
+          foreignField: "_id",
+          as: "employee",
+        },
+      },
+      {
+        $unwind: {
+          path: "$employee",
+        },
+      },
+      {
+        $addFields: {
+          employee_name: "$employee.name",
+          emplooyee_email: "$employee.email",
+          empoyee_image: "$employee.profile_image",
+          total_amount: {
+            $multiply: ["$charges_per_hour", "$total_hours"],
+          },
+        },
+      },
+      {
+        $unset: ["employee"],
+      },
+    ]);
 
     return res.status(200).send({
-      status:1,
-      message:"Fetched job post employee successfully",
-      job_post_employee
-    })
+      status: 1,
+      message: "Fetched job post employee successfully",
+      job_post_employee,
+    });
   } catch {
     console.error("Error", err.message.red);
     return res.status(500).send({
@@ -999,5 +1067,5 @@ module.exports = {
   job_applicants,
   edit_job_post,
   complete_job,
-  get_job_employee
+  get_job_employee,
 };
