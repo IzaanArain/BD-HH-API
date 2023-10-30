@@ -196,18 +196,28 @@ const assign_job = async (req, res) => {
         message: "job post not found",
       });
     }
-    const job_applied=await ApplyJob.findOne({user_id:employee_id,job_post_id:post_id});
-    if(!job_applied){
+    const job_applied = await ApplyJob.findOne({
+      user_id: employee_id,
+      job_post_id: post_id,
+    });
+    if (!job_applied) {
       return res.status(400).send({
         status: 0,
         message: "employee has not applied yet",
       });
     }
-    const job_assigned = req?.user?.is_assigned;
+    const job_assigned = job_post?.is_assigned;
     if (job_assigned) {
       return res.status(400).send({
         status: 0,
         message: "job already assigned",
+      });
+    }
+    const job_post_employer = job_post?.employer_id;
+    if (employer_id.toString() !== job_post_employer.toString()) {
+      return res.status(400).send({
+        status: 0,
+        message: "Employer is not authorized to assign this job!",
       });
     }
     // assigning job
@@ -243,7 +253,7 @@ const assign_job = async (req, res) => {
       status: 1,
       message: "job post assigned successfully",
       job_post: assigned_job,
-      notification:employee_job_notification
+      notification: employee_job_notification,
     });
   } catch (err) {
     console.error("Error", err.message.red);
@@ -299,9 +309,13 @@ const accept_job = async (req, res) => {
       },
       { new: true }
     );
-    const employer_id=accepted_job?.employer_id;
-    console.log(employer_id)
-    await Notification.findOneAndDelete({receiver_id:employee_id,sender_id:employer_id,job_post_id:post_id});
+    const employer_id = accepted_job?.employer_id;
+    console.log(employer_id);
+    await Notification.findOneAndDelete({
+      receiver_id: employee_id,
+      sender_id: employer_id,
+      job_post_id: post_id,
+    });
     return res.status(200).send({
       status: 1,
       message: "Job accepted successfully!",
@@ -539,11 +553,11 @@ const get_accepted_posts = async (req, res) => {
 
 const job_posts_applicants = async (req, res) => {
   try {
-    const employer_id=req?.user?._id;
+    const employer_id = req?.user?._id;
     const job_applicants = await JobPost.aggregate([
       {
         $match: {
-          employer_id:new mongoose.Types.ObjectId(employer_id),
+          employer_id: new mongoose.Types.ObjectId(employer_id),
           job_status: "Waiting Applicant",
         },
       },
@@ -655,13 +669,12 @@ const job_applicants = async (req, res) => {
         },
       },
       {
-        $project:
-          {
-            employee_name: 1,
-            employee_image: 1,
-            employee_rate: 1,
-            _id: 0,
-          },
+        $project: {
+          employee_name: 1,
+          employee_image: 1,
+          employee_rate: 1,
+          _id: 0,
+        },
       },
       // {
       //   $unset: ["user", "reviews"],
@@ -793,9 +806,16 @@ const edit_job_post = async (req, res) => {
   }
 };
 
-const complete_job=async(req,res)=>{
+const complete_job = async (req, res) => {
+  try {
+  } catch (err) {
+    console.error("Error", err.message.red);
+    return res.status(500).send({
+      status: 0,
+      message: "Something went wrong",
+    });
+  }
 };
-
 
 module.exports = {
   create_job_post,

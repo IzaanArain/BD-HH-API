@@ -40,10 +40,24 @@ const rate_review_employee = async (req, res) => {
       employee_id: employee_id,
     });
     if (rate_review_exists) {
-      return res.status(500).send({
-        status: 0,
-        message: "employer has already rate and reviewed employee!",
+      const update_rate_review = await RateReview.findOneAndUpdate(
+        { employer_id: employer_id, employee_id: employee_id },
+        {
+          rate: parseInt(rate),
+          review_body: review,
+          review_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+        },
+        { new: true }
+      );
+       return res.status(200).send({
+        status: 1,
+        message: "employer has updated rate and reviewed for employee!",
+        rate_review:update_rate_review
       });
+      // return res.status(500).send({
+      //   status: 0,
+      //   message: "employer has already rate and reviewed employee!",
+      // });
     } else {
       const rate_review = await RateReview.create({
         employer_id: employer_id,
@@ -150,7 +164,7 @@ const employee_rate_reviews = async (req, res) => {
     //     },
     //   },
     // ]);
-    
+
     return res.status(200).send({
       status: 1,
       message: "got all user reviews",

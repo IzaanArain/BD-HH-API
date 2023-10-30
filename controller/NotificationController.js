@@ -87,10 +87,11 @@ const mongoose = require("mongoose");
 const employee_job_notifications = async (req, res) => {
   try {
     const employee_id=req?.user?._id;
-    const job_notifications = await JobPost.aggregate([
+    console.log(employee_id)
+    const job_notifications = await Notification.aggregate([
       {
         $match: {
-          receiver_id:new mongoose.Types.ObjectId(employee_id),
+          receiver_id:employee_id,
         },
       },
       {
@@ -109,7 +110,7 @@ const employee_job_notifications = async (req, res) => {
       {
         $lookup: {
           from: "users",
-          localField: "send_id",
+          localField: "sender_id",
           foreignField: "_id",
           as: "employer",
         },
