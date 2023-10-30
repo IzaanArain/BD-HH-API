@@ -335,12 +335,17 @@ const accept_job = async (req, res) => {
         message: "job not assigned to this employee",
       });
     }
-    const job_start_time=job_post?.start_time;
+    const job_assign_time=job_post?.assigned_date;
     const Job_end_time=job_post?.end_time;
-    const date1=moment(job_start_time,"MMMM Do YYYY, h:mm:ss a");
+    const date1=moment(job_assign_time,"MMMM Do YYYY, h:mm:ss a");
     const date2=moment(Job_end_time,"MMMM Do YYYY, h:mm:ss a");
     const accept_job_time=moment(Date.now());
-    if(accept_job_time.isAfter(date2)){
+    if(accept_job_time.isBefore(date1)){
+      return res.status(400).send({
+        status: 0,
+        message: "user can not accept before assign time",
+      });
+    }else if(accept_job_time.isAfter(date2)){
       return res.status(400).send({
         status: 0,
         message: "user can not accept date after end date",
