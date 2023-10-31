@@ -4,17 +4,17 @@ const { Schema } = mongoose;
 const paymentSchema = new Schema(
   {
     job_post_id: {
-      types: mongoose.Types.ObjectId,
+      type: mongoose.Types.ObjectId,
       ref: "jobPost",
       default: null,
     },
     employee_id: {
-      types: mongoose.Types.ObjectId,
+      type: mongoose.Types.ObjectId,
       ref: "user",
       default: null,
     },
     employer_id: {
-      types: mongoose.Types.ObjectId,
+      type: mongoose.Types.ObjectId,
       ref: "user",
       default: null,
     },
