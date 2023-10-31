@@ -115,6 +115,20 @@ const otp_verfy = async (req, res) => {
         message: "user not found,try again",
       });
     }
+    const is_blocked=user?.is_blocked;
+    if(is_blocked){
+      return res.status(400).send({
+        status: 0,
+        message: "user account has been blocked, please contact admin",
+      });
+    };
+    const is_delete=user?.is_delete;
+    if(is_delete){
+      return res.status(400).send({
+        status: 0,
+        message: "user account has been deleted, please contact admin",
+      });
+    };
     const user_otp_code = user?.otp_code;
     const user_id = user?._id;
     if (parseInt(typed_otp_code) !== user_otp_code) {
@@ -193,6 +207,27 @@ const login = async (req, res) => {
         message: "user not found",
       });
     }
+    const is_verified=user?.is_verified;
+    if(!is_verified){
+      return res.status(400).send({
+        status: 0,
+        message: "user not verified",
+      });
+    };
+    const is_blocked=user?.is_blocked;
+    if(is_blocked){
+      return res.status(400).send({
+        status: 0,
+        message: "user account has been blocked, please contact admin",
+      });
+    };
+    const is_delete=user?.is_delete;
+    if(is_delete){
+      return res.status(400).send({
+        status: 0,
+        message: "user account has been deleted, please contact admin",
+      });
+    };
     const user_password = user?.password;
     const user_id = user?._id;
     const matchPassword = await bcrypt.compare(typed_password, user_password);
@@ -246,6 +281,20 @@ const forgot_password = async (req, res) => {
         message: "user not found",
       });
     }
+    const is_blocked=user?.is_blocked;
+    if(is_blocked){
+      return res.status(400).send({
+        status: 0,
+        message: "user account has been blocked, please contact admin",
+      });
+    };
+    const is_delete=user?.is_delete;
+    if(is_delete){
+      return res.status(400).send({
+        status: 0,
+        message: "user account has been deleted, please contact admin",
+      });
+    };
     const user_id = user?._id;
     const gen_otp_code = Math.floor(Math.random() * 900000) + 100000;
     const user_updated = await User.findByIdAndUpdate(
@@ -312,7 +361,21 @@ const reset_password = async (req, res) => {
         status: 0,
         message: "user not verified",
       });
-    }
+    };
+    const is_blocked=user?.is_blocked;
+    if(is_blocked){
+      return res.status(400).send({
+        status: 0,
+        message: "user account has been blocked, please contact admin",
+      });
+    };
+    const is_delete=user?.is_delete;
+    if(is_delete){
+      return res.status(400).send({
+        status: 0,
+        message: "user account has been deleted, please contact admin",
+      });
+    };
     const user_id = user?._id;
     const saltRounds = 10;
     const salt = await bcrypt.genSalt(saltRounds);

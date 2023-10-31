@@ -52,17 +52,17 @@ const create_job_post = async (req, res) => {
     const date2 = moment(end_time);
     const total_hours = date2.diff(date1, "hours");
     if (date1.isBefore(current_date)) {
-      res.status(400).send({
+      return res.status(400).send({
         status: 0,
         message: "start date can not be before current date",
       });
     } else if (date2.isBefore(date1)) {
-      res.status(400).send({
+      return res.status(400).send({
         status: 0,
         message: "end date can not be before start date",
       });
     } else if (date1.isAfter(date2)) {
-      res.status(400).send({
+      return res.status(400).send({
         status: 0,
         message: "start date can not be after end date",
       });
@@ -151,6 +151,7 @@ const apply_job = async (req, res) => {
         sender_id: user_id,
         receiver_id: employer_id,
         job_post_id: post_id,
+        title: "Applied",
         notification_body: "User Applied",
         notification_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
       });
@@ -217,17 +218,17 @@ const assign_job = async (req, res) => {
       });
     }
 
-    const job_start_time=job_post?.start_time;
-    const Job_end_time=job_post?.end_time;
-    const date1=moment(job_start_time,"MMMM Do YYYY, h:mm:ss a");
-    const date2=moment(Job_end_time,"MMMM Do YYYY, h:mm:ss a");
-    const assign_time=moment(Date.now());
-    if(assign_time.isAfter(date2)){
+    const job_start_time = job_post?.start_time;
+    const Job_end_time = job_post?.end_time;
+    const date1 = moment(job_start_time, "MMMM Do YYYY, h:mm:ss a");
+    const date2 = moment(Job_end_time, "MMMM Do YYYY, h:mm:ss a");
+    const assign_time = moment(Date.now());
+    if (assign_time.isAfter(date1)) {
       return res.status(400).send({
         status: 0,
-        message: "user can not be assigned after end date",
+        message: "user can not be assigned after start date",
       });
-    };
+    }
 
     const job_applied = await ApplyJob.findOne({
       user_id: employee_id,
@@ -282,6 +283,9 @@ const assign_job = async (req, res) => {
       sender_id: employer_id,
       receiver_id: employee_id,
       job_post_id: post_id,
+      req_type: true,
+      title: "Assigned",
+      notification_body: "user has been assigned job",
       notification_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
     });
     return res.status(200).send({
@@ -335,22 +339,24 @@ const accept_job = async (req, res) => {
         message: "job not assigned to this employee",
       });
     }
-    const job_assign_time=job_post?.assigned_date;
-    const Job_end_time=job_post?.end_time;
-    const date1=moment(job_assign_time,"MMMM Do YYYY, h:mm:ss a");
-    const date2=moment(Job_end_time,"MMMM Do YYYY, h:mm:ss a");
-    const accept_job_time=moment(Date.now());
-    if(accept_job_time.isBefore(date1)){
+    const job_start_time = job_post?.start_time;
+    const Job_end_time = job_post?.end_time;
+    const job_assigned_time = job_post?.assigned_date;
+    const date1 = moment(job_start_time, "MMMM Do YYYY, h:mm:ss a");
+    const date2 = moment(Job_end_time, "MMMM Do YYYY, h:mm:ss a");
+    const assign_date = moment(job_assigned_time, "MMMM Do YYYY, h:mm:ss a");
+    const accept_job_time = moment(Date.now());
+    if (accept_job_time.isBefore(assign_date)) {
       return res.status(400).send({
         status: 0,
         message: "user can not accept before assign time",
       });
-    }else if(accept_job_time.isAfter(date2)){
+    } else if (accept_job_time.isAfter(date1)) {
       return res.status(400).send({
         status: 0,
-        message: "user can not accept date after end date",
+        message: "user can not accept after start time",
       });
-    };
+    }
     const accepted_job = await JobPost.findByIdAndUpdate(
       post_id,
       {
@@ -370,6 +376,8 @@ const accept_job = async (req, res) => {
       receiver_id: employer_id,
       sender_id: employee_id,
       job_post_id: post_id,
+      title: "Accepted",
+      notification_body: "user accepted job",
       notification_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
     });
     return res.status(200).send({
@@ -389,6 +397,7 @@ const accept_job = async (req, res) => {
 
 const get_job_post = async (req, res) => {
   try {
+    const employer_id = req?.user?._id;
     const post_id = req.query.post_id;
     if (!post_id) {
       return res.status(400).send({
@@ -406,6 +415,13 @@ const get_job_post = async (req, res) => {
       return res.status(400).send({
         status: 0,
         message: "job post not found",
+      });
+    }
+    const job_employer_id = job_post_exists?.employer_id;
+    if (job_employer_id.toString() !== employer_id.toString()) {
+      return res.status(400).send({
+        status: 0,
+        message: "job was not create by employer!",
       });
     }
     const job_accepted = job_post_exists?.is_accepted;
@@ -689,6 +705,38 @@ const job_applicants = async (req, res) => {
         message: "job post not found",
       });
     }
+    // const job_applicants = await JobPost.aggregate([
+    //   {
+    //     $match: {
+    //       _id: new mongoose.Types.ObjectId(post_id),
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "appliedjobposts",
+    //       localField: "_id",
+    //       foreignField: "job_post_id",
+    //       as: "applicants",
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "users",
+    //       localField: "applicants.user_id",
+    //       foreignField: "_id",
+    //       as: "employees",
+    //     },
+    //   },
+    //   {
+    //     $lookup: {
+    //       from: "reviewrates",
+    //       localField: "applicants.user_id",
+    //       foreignField: "employee_id",
+    //       as: "reviews",
+    //     },
+    //   },
+    // ]);
+    
     const job_applicants = await ApplyJob.aggregate([
       {
         $match: {
@@ -971,6 +1019,7 @@ const complete_job = async (req, res) => {
           sender_id: employee_id,
           receiver_id: employer_id,
           job_post_id: post_id,
+          title: "Completed",
           notification_body: "Job Completed",
           notification_date: moment(Date.now()).format(
             "MMMM Do YYYY, h:mm:ss a"

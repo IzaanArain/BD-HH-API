@@ -29,10 +29,23 @@ const user_validate_token = async (req, res, next) => {
         status: 0,
         message: "Unauthorized : User not found",
       });
-    } else {
+    } 
+    const is_blocked=user?.is_blocked;
+    if(is_blocked){
+      return res.status(400).send({
+        status: 0,
+        message: "user account has been blocked, please contact admin",
+      });
+    };
+    const is_delete=user?.is_delete;
+    if(is_delete){
+      return res.status(400).send({
+        status: 0,
+        message: "user account has been deleted, please contact admin",
+      });
+    };
       req.user = user;
       next();
-    }
   } catch (err) {
     console.error("Error", err.message);
     return res.status(500).send({

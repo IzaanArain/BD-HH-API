@@ -87,7 +87,6 @@ const mongoose = require("mongoose");
 const employee_job_notifications = async (req, res) => {
   try {
     const employee_id = req?.user?._id;
-    console.log(employee_id);
     const job_notifications = await Notification.aggregate([
       {
         $match: {
@@ -183,6 +182,7 @@ const employer_notification = async (req, res) => {
       {
         $unwind: {
           path: "$employee",
+          preserveNullAndEmptyArrays:true,
         },
       },
       {
