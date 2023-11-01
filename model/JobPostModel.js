@@ -43,7 +43,7 @@ const jobPostSchema = new Schema(
         "Accepted",
         "In Progress",
         "Completed",
-        "Paided",
+        "Paid",
         "Late submission",
       ],
       default: "Waiting Applicant",

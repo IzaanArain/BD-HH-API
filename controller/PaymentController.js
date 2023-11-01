@@ -1,7 +1,9 @@
-const { default: mongoose } = require("mongoose");
+const mongoose=require("mongoose");
 const Payment=require("../model/PaymentModel");
-const mongoose=require(mongoose);
 const JobPost=require("../model/JobPostModel");
+const Card=require("../model/CardModel");
+const Notification=require("../model/NotificationModel")
+const moment=require("moment");
 
 const pay_job_employee = async (req, res) => {
   try {
@@ -25,7 +27,15 @@ const pay_job_employee = async (req, res) => {
           status: 0,
           message: "card not found",
         });
-      }else if (!post_id) {
+      } 
+      const employer_card=card_exists?.employer_id;
+      if(employer_card.toString()!==employer_id.toString()){
+        return res.status(400).send({
+          status: 0,
+          message: "employer has not registered this card",
+        });
+      } 
+      if (!post_id) {
         return res.status(400).send({
           status: 0,
           message: "please enter post ID",
@@ -36,7 +46,7 @@ const pay_job_employee = async (req, res) => {
           message: "Not a valid post ID",
         });
       }
-      const job_exists = await Card.findById(post_id);
+      const job_exists = await JobPost.findById(post_id);
       if (!job_exists) {
         return res.status(400).send({
           status: 0,
@@ -58,7 +68,7 @@ const pay_job_employee = async (req, res) => {
         });
       }
       const employee_id=job_exists?.employee_id;
-      const charges_per_hours=job_exists?.charges_per_hours;
+      const charges_per_hours=job_exists?.charges_per_hour;
       const total_hours=job_exists?.total_hours;
       const paid_amount=charges_per_hours*total_hours;
       const payment_exists=await Payment.findOne({
@@ -77,15 +87,23 @@ const pay_job_employee = async (req, res) => {
         job_post_id:post_id,
         employee_id:employee_id,
         employer_id:employer_id,
-        paid_amount:paid_amount,
+        paid_amount:parseFloat(paid_amount),
         payment_date:moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
         is_paid:true,
       });
       await JobPost.findByIdAndUpdate(
         post_id,
-        {status: "Paided",is_paid:true},
+        {status: "Paid",is_paid:true},
         {new:true}
       )
+      await Notification.create({
+        receiver_id:employee_id,
+        sender_id:employer_id,
+        job_post_id:post_id,
+        title:"Payment",
+        notification_body:"Payment made to user",
+        notification_date:moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a")
+      })
       return res.status(200).send({
         status:1,
         message:"payment successful",

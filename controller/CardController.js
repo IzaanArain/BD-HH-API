@@ -39,12 +39,10 @@ const add_card = async (req, res) => {
         message: "expiry date can not be same or before current date",
       });
     }
+    const card_num=parseInt(card_number);
+    console.log(card_num)
     const card_exists = await Card.findOne({
-      card_holder_name: name,
-      card_number: parseInt(card_number),
-      expiry_date: expiry_date,
-      cvv_number: parseInt(cvv_number),
-      employer_id: employer_id,
+      card_number: card_num,
     });
     if (card_exists) {
       return res.status(500).send({
@@ -56,7 +54,7 @@ const add_card = async (req, res) => {
     const employer_card = await Card.create({
       card_holder_name: name,
       card_number: parseInt(card_number),
-      expiry_date: expiry_date,
+      expiry_date: date.format("MMMM Do YYYY, h:mm:ss a"),
       cvv_number: parseInt(cvv_number),
       employer_id: employer_id,
     });
