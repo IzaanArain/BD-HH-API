@@ -1,4 +1,7 @@
+const { default: mongoose } = require("mongoose");
 const Payment=require("../model/PaymentModel");
+const mongoose=require(mongoose);
+const JobPost=require("../model/JobPostModel");
 
 const pay_job_employee = async (req, res) => {
   try {
@@ -78,6 +81,11 @@ const pay_job_employee = async (req, res) => {
         payment_date:moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
         is_paid:true,
       });
+      await JobPost.findByIdAndUpdate(
+        post_id,
+        {status: "Paided",is_paid:true},
+        {new:true}
+      )
       return res.status(200).send({
         status:1,
         message:"payment successful",
