@@ -736,7 +736,7 @@ const job_applicants = async (req, res) => {
     //     },
     //   },
     // ]);
-    
+
     const job_applicants = await ApplyJob.aggregate([
       {
         $match: {
@@ -948,40 +948,40 @@ const complete_job = async (req, res) => {
       });
     }
     const employer_id = job_post_exists?.employer_id;
+    const is_late = job_post_exists?.is_late;
+    const job_completed = job_post_exists?.job_completed;
     const job_accepted_time = job_post_exists?.accepted_date;
     const job_end_time = job_post_exists?.end_time;
     const date1 = moment(job_accepted_time, "MMMM Do YYYY, h:mm:ss a");
     const date2 = moment(job_end_time, "MMMM Do YYYY, h:mm:ss a");
     const completion_time = moment(Date.now());
 
-    const already_send_nofication = await Notification.findOne({
-      sender_id: employee_id,
-      receiver_id: employer_id,
-      job_post_id: post_id,
-    });
+    // const already_send_nofication = await Notification.findOne({
+    //   sender_id: employee_id,
+    //   receiver_id: employer_id,
+    //   job_post_id: post_id,
+    // });
     if (completion_time.isBefore(date1)) {
       return res.status(400).send({
         status: 0,
         message: "completion time can not be before start time",
       });
     } else if (completion_time.isAfter(date2)) {
-      const job_post = await JobPost.findByIdAndUpdate(
-        employee_id,
-        {
-          status: "Late submission",
-          is_late: true,
-          late_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
-        },
-        { new: true }
-      );
-      if (already_send_nofication) {
+      if (is_late) {
         res.status(200).send({
           status: 1,
-          message: "Already sent notification",
-          job_post: job_post,
-          notification: already_send_nofication,
+          message: "Already sent late submission notification",
         });
       } else {
+        const job_post = await JobPost.findByIdAndUpdate(
+          employee_id,
+          {
+            status: "Late submission",
+            is_late: true,
+            late_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
+          },
+          { new: true }
+        );
         const employer_notification = await Notification.create({
           sender_id: employee_id,
           receiver_id: employer_id,
@@ -1000,21 +1000,23 @@ const complete_job = async (req, res) => {
         });
       }
     } else {
-      const job_completed = await JobPost.findByIdAndUpdate(post_id, {
-        status: "Completed",
-        job_completed: true,
-        user_completion_date: moment(Date.now()).format(
-          "MMMM Do YYYY, h:mm:ss a"
-        ),
-      });
-      if (already_send_nofication) {
+      if (job_completed) {
         res.status(200).send({
           status: 1,
-          message: "Already sent notification",
-          job_post: job_completed,
-          notification: already_send_nofication,
+          message: "Already sent job completed notification",
         });
       } else {
+        const job_completed = await JobPost.findByIdAndUpdate(
+          post_id,
+          {
+            status: "Completed",
+            job_completed: true,
+            user_completion_date: moment(Date.now()).format(
+              "MMMM Do YYYY, h:mm:ss a"
+            ),
+          },
+          { new: true }
+        );
         const completion_notification = await Notification.create({
           sender_id: employee_id,
           receiver_id: employer_id,
