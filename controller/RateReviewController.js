@@ -54,10 +54,6 @@ const rate_review_employee = async (req, res) => {
         message: "employer has updated rate and reviewed for employee!",
         rate_review:update_rate_review
       });
-      // return res.status(500).send({
-      //   status: 0,
-      //   message: "employer has already rate and reviewed employee!",
-      // });
     } else {
       const rate_review = await RateReview.create({
         employer_id: employer_id,
