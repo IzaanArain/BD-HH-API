@@ -74,7 +74,7 @@ router.get("/employer_notifications",user_validate_token,checkUserRole("employer
 router.get("/employee_job_notifications",user_validate_token,checkUserRole("employee"),employee_job_notifications);
 // employer Card routes
 router.post("/add_card",user_validate_token,checkUserRole("employer"),add_card);
-router.put("/delete_card",user_validate_token,checkUserRole("employer"),delete_card);
+router.post("/delete_card",user_validate_token,checkUserRole("employer"),delete_card);
 // employer payment route
 router.post("/pay_job_employee",user_validate_token,checkUserRole("employer"),pay_job_employee)
 // rate & review employee by employer

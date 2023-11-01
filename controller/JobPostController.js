@@ -955,12 +955,7 @@ const complete_job = async (req, res) => {
     const date1 = moment(job_accepted_time, "MMMM Do YYYY, h:mm:ss a");
     const date2 = moment(job_end_time, "MMMM Do YYYY, h:mm:ss a");
     const completion_time = moment(Date.now());
-
-    // const already_send_nofication = await Notification.findOne({
-    //   sender_id: employee_id,
-    //   receiver_id: employer_id,
-    //   job_post_id: post_id,
-    // });
+    
     if (completion_time.isBefore(date1)) {
       return res.status(400).send({
         status: 0,
