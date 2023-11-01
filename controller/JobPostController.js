@@ -536,6 +536,61 @@ const employer_job_posts = async (req, res) => {
       {
         $match: {
           employer_id: new mongoose.Types.ObjectId(employer_id),
+          job_status: {
+            $in: ["Waiting Applicant", "Accepted", "In Progress", "Completed"],
+          },
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "employee_id",
+          foreignField: "_id",
+          as: "employee",
+        },
+      },
+      {
+        $unwind: {
+          path: "$employee",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $addFields: {
+          employee_name: "$employee.name",
+          employee_image: "$employee.profile_image",
+          employee_location: "$employee.location",
+        },
+      },
+      {
+        $unset: ["employee"],
+      },
+    ]);
+    return res.status(200).send({
+      status: 1,
+      message: "fetched all job posts successfully",
+      job_posts,
+    });
+  } catch (err) {
+    console.error("Error", err.message.red);
+    return res.status(500).send({
+      status: 0,
+      message: "Something went wrong",
+    });
+  }
+};
+
+// employer previous job posts
+const employer_previous_job_posts = async (req, res) => {
+  try {
+    const employer_id = req?.user?._id;
+    const job_posts = await JobPost.aggregate([
+      {
+        $match: {
+          employer_id: new mongoose.Types.ObjectId(employer_id),
+          job_status: {
+            $in: ["Paid", "Late submission"],
+          },
         },
       },
       {
@@ -955,7 +1010,7 @@ const complete_job = async (req, res) => {
     const date1 = moment(job_accepted_time, "MMMM Do YYYY, h:mm:ss a");
     const date2 = moment(job_end_time, "MMMM Do YYYY, h:mm:ss a");
     const completion_time = moment(Date.now());
-    
+
     if (completion_time.isBefore(date1)) {
       return res.status(400).send({
         status: 0,
@@ -971,7 +1026,7 @@ const complete_job = async (req, res) => {
         const job_post = await JobPost.findByIdAndUpdate(
           employee_id,
           {
-            status: "Late submission",
+            job_status: "Late submission",
             is_late: true,
             late_date: moment(Date.now()).format("MMMM Do YYYY, h:mm:ss a"),
           },
@@ -1004,7 +1059,7 @@ const complete_job = async (req, res) => {
         const job_completed = await JobPost.findByIdAndUpdate(
           post_id,
           {
-            status: "Completed",
+            job_status: "Completed",
             job_completed: true,
             user_completion_date: moment(Date.now()).format(
               "MMMM Do YYYY, h:mm:ss a"
@@ -1124,6 +1179,7 @@ module.exports = {
   get_job_post,
   employee_job_posts,
   employer_job_posts,
+  employer_previous_job_posts,
   get_accepted_posts,
   job_posts_applicants,
   job_applicants,

@@ -26,6 +26,7 @@ const {
   job_applicants,
   complete_job,
   get_job_employee,
+  employer_previous_job_posts,
 } = require("../controller/JobPostController");
 const { checkUserRole } = require("../middleware/AuthorizeRole");
 const { error_handler } = require("../middleware/ErrorHandler");
@@ -56,6 +57,7 @@ router.post("/create_job_post", user_validate_token,checkUserRole("employer"),up
 router.post("/assign_job", user_validate_token,checkUserRole("employer"),assign_job);
 router.get("/get_job_post", user_validate_token,checkUserRole("employer"),get_job_post);
 router.get("/employer_job_posts", user_validate_token,checkUserRole("employer"),employer_job_posts);
+router.get("/employer_previous_jobs", user_validate_token,checkUserRole("employer"),employer_previous_job_posts);
 router.put("/edit_job_post", user_validate_token,checkUserRole("employer"),upload.fields([{name:"post_image"}]),error_handler,edit_job_post);
 router.get("/get_job_employee",user_validate_token,checkUserRole("employer"),get_job_employee)
 // employee job routes
